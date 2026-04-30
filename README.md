@@ -11,8 +11,8 @@ A multiple-choice quiz app built with vanilla HTML, CSS, and JavaScript. No fram
 
 ## Tech
 - HTML5
-- CSS3 (Flexbox, custom properties, transitions)
-- Vanilla JavaScript (ES6+)
+- CSS
+- JavaScript
 
 ## Run locally
 Just open `index.html` in any browser.
