@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Quiz Quest</title>
+    <link rel="stylesheet" href="style.css" />
+</head>
+
+<body>
+    <header>
+        <h1>Quiz Quest</h1>
+    </header>
+
+    <main>
+        <!-- Screen 1: Start -->
+        <section id="start-screen" class="screen">
+            <h2>Test your knowledge!</h2>
+            <p>Answer 5 multiple-choice questions. How many can you get right?</p>
+            <form id="start-form">
+                <label for="player-name">Enter your name:</label>
+                <input type="text" id="player-name" name="playerName" placeholder="e.g. Anupam Singh" required
+                    minlength="2" maxlength="20" />
+                <button type="submit">Start Quiz</button>
+            </form>
+        </section>
+
+        <!-- Screen 2: Quiz (hidden for now) -->
+        <section id="quiz-screen" class="screen hidden">
+            <div class="quiz-info">
+                <span id="question-counter">Question 1 of 5</span>
+                <span id="score-display">Score: 0</span>
+            </div>
+            <h2 id="question-text">Question goes here</h2>
+            <div id="answer-buttons">
+                <button class="answer-btn">Answer 1</button>
+                <button class="answer-btn">Answer 2</button>
+                <button class="answer-btn">Answer 3</button>
+                <button class="answer-btn">Answer 4</button>
+            </div>
+        </section>
+
+        <!-- Screen 3: Results (hidden for now) -->
+        <section id="results-screen" class="screen hidden">
+            <h2>Quiz Complete!</h2>
+            <p id="final-message">Great job, player!</p>
+            <p id="final-score">You scored 0 out of 5</p>
+            <button id="play-again-btn">Play Again</button>
+        </section>
+    </main>
+
+    <footer>
+        <p>Built with HTML, CSS &amp; JavaScript</p>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+
+</html>
