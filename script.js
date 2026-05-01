@@ -88,9 +88,6 @@ function loadQuestion() {
     });
 }
 
-const progressPercent = ((currentQuestionIndex) / questions.length) * 100;
-progressFill.style.width = `${progressPercent}%`;
-
 // ============================================
 // Handle the user clicking an answer button
 // ============================================
