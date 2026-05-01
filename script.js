@@ -43,6 +43,7 @@ const playerNameInput = document.getElementById("player-name");
 const questionCounter = document.getElementById("question-counter");
 const scoreDisplay = document.getElementById("score-display");
 const questionText = document.getElementById("question-text");
+const progressFill = document.getElementById("progress-fill");
 const answerButtons = document.querySelectorAll(".answer-btn");
 
 const finalMessage = document.getElementById("final-message");
@@ -76,12 +77,19 @@ function loadQuestion() {
     questionCounter.textContent = `Question ${currentQuestionIndex + 1} of ${questions.length}`;
     scoreDisplay.textContent = `Score: ${score}`;
 
+    // Update progress bar
+    const progressPercent = ((currentQuestionIndex) / questions.length) * 100;
+    progressFill.style.width = `${progressPercent}%`;
+
     answerButtons.forEach((button, index) => {
         button.textContent = currentQuestion.choices[index];
         button.disabled = false;
         button.style.backgroundColor = "";
     });
 }
+
+const progressPercent = ((currentQuestionIndex) / questions.length) * 100;
+progressFill.style.width = `${progressPercent}%`;
 
 // ============================================
 // Handle the user clicking an answer button
@@ -123,6 +131,8 @@ function handleAnswerClick(event) {
 // Show the results screen
 // ============================================
 function showResults() {
+    progressFill.style.width = "100%";  // NEW
+
     const total = questions.length;
     const percentage = Math.round((score / total) * 100);
 
@@ -153,6 +163,7 @@ function resetQuiz() {
     score = 0;
     playerName = "";
     playerNameInput.value = "";
+    progressFill.style.width = "0%";  // NEW
     showScreen(startScreen);
 }
 
