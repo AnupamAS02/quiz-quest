@@ -30,6 +30,7 @@ A multiple-choice quiz app built with vanilla HTML, CSS, and JavaScript. No fram
 - Optional results review with all five questions, your answers, correct answers, explanations and official source links
 - Share your Brainer score and quiz link without your entered name
 - Device sharing where supported, clipboard copying or selectable text as a fallback
+- Save a private PNG score image with the five-question Brainer invitation and public quiz address
 
 ## Tech stack
 
@@ -58,6 +59,7 @@ node tests/quiz.test.js
 node tests/sharing.test.js
 node tests/preview.test.js
 node tests/progress.test.js
+node tests/score-image.test.js
 ```
 
 Result sharing always uses `https://anupamas02.github.io/quiz-quest/`, not the current address or any player data in it. Shared rounds are randomized independently; no identical-question challenge is implied. Share cancellation keeps the result on screen. If device sharing fails, use Copy Result; if clipboard access is missing or denied, copy from the selected, read-only text field. Play Again clears the result and sharing state, including pending sharing replies.
@@ -67,6 +69,14 @@ The results screen includes a collapsed Review Answers section. Open it with a t
 Nicknames are optional and kept only in the current page’s memory; no nickname is stored. Blank or whitespace-only entries start a round without personalization. Entered nicknames are trimmed and must contain 2–20 characters. Play Again clears the nickname.
 
 Quiz regression checks cover blank and whitespace-only starts, trimmed nicknames, length limits, encouraging results with and without nicknames, review contents for mixed, zero and perfect scores, source links, repeated answers and cleared review state on replay. Sharing regression checks simulate native sharing success/cancellation/failure, clipboard success/denial/absence, scores 0/3/5 and late responses after replay. Also spot-check a native device share sheet on the deployed HTTPS site, since desktop browser automation cannot verify OS-specific share targets.
+
+## Private score images
+
+Save Score Image is a secondary results action; Play Again remains primary. It draws a 1200 × 900 PNG in the browser using Canvas and system sans-serif fonts. The image contains only the score out of five, Quiz Quest, a five-question Brainer invitation, a note that rounds may differ and the fixed public quiz URL. Neither the nickname, current page URL, question details nor review content is drawn or used in the filename. No third-party runtime service, external image, font download, hosting setting or build step is needed.
+
+The action requests a PNG download named `quiz-quest-score-N-of-5.png`. Browser download support varies, and browsers do not tell the page whether a player accepted, cancelled or silently blocked a download. The status therefore says the download was requested and offers Copy Result if it did not save. Unsupported download APIs, drawing/encoding errors, a null image, a 10-second encoding timeout and thrown download errors show a friendly Copy Result fallback without navigating away or changing the score or review. Saving never copies automatically. The temporary link is removed and its blob URL is released after 60 seconds. Play Again clears image status and invalidates pending image creation, so late replies cannot download a previous round's score.
+
+`node tests/score-image.test.js` covers scores 0/3/5, private image copy and filename, download cleanup, unavailable/failed APIs, encoding timeout, preserved results and open review, repeated clicks and replay during/after saving. Local Chromium checks verified PNG generation and completed browser downloads, keyboard saving, failed encoding and retry, review preservation, replay and layouts at 375, 768 and 1280 pixels. After merging and deploying, spot-check saving on the founder's target mobile browsers; OS-specific file handling is not verified by desktop automation.
 
 ## Unfinished round recovery
 

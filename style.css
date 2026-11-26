@@ -300,7 +300,8 @@ button:active {
     transform: none;
 }
 
-#share-status:not(:empty) {
+#share-status:not(:empty),
+#save-image-status:not(:empty) {
     margin: 1rem 0;
 }
 

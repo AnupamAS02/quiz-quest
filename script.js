@@ -53,6 +53,8 @@ const copyResultBtn = document.getElementById("copy-result-btn");
 const shareStatus = document.getElementById("share-status");
 const manualCopy = document.getElementById("manual-copy");
 const shareText = document.getElementById("share-text");
+const saveImageBtn = document.getElementById("save-image-btn");
+const saveImageStatus = document.getElementById("save-image-status");
 const quizUrl = "https://anupamas02.github.io/quiz-quest/";
 let sharingVersion = 0;
 
@@ -68,6 +70,92 @@ function clearSharing() {
     manualCopy.classList.add("hidden");
     shareResultBtn.disabled = false;
     copyResultBtn.disabled = false;
+    saveImageBtn.disabled = false;
+    saveImageStatus.textContent = "";
+}
+
+// Draw from an explicit score and fixed copy, never from results DOM or identity.
+function scoreImage(roundScore) {
+    const canvas = document.createElement("canvas");
+    canvas.width = 1200;
+    canvas.height = 900;
+    const context = canvas.getContext("2d");
+    if (!context) throw new Error("Image drawing unavailable");
+    context.fillStyle = "#f8fafc";
+    context.fillRect(0, 0, 1200, 900);
+    context.fillStyle = "#ffffff";
+    context.fillRect(48, 48, 1104, 804);
+    context.fillStyle = "#2563eb";
+    context.fillRect(48, 48, 1104, 12);
+    context.textAlign = "center";
+    context.fillStyle = "#2563eb";
+    context.font = "bold 48px sans-serif";
+    context.fillText("Quiz Quest", 600, 150);
+    context.fillStyle = "#172554";
+    context.font = "36px sans-serif";
+    context.fillText("My Brainer quiz score", 600, 230);
+    context.font = "bold 160px sans-serif";
+    context.fillText(`${roundScore} / ${roundSize}`, 600, 420);
+    context.fillStyle = "#f59e0b";
+    context.fillRect(520, 460, 160, 8);
+    context.fillStyle = "#172554";
+    context.font = "bold 46px sans-serif";
+    context.fillText("How many can you get right?", 600, 555);
+    context.font = "34px sans-serif";
+    context.fillText("Answer five multiple-choice questions about Brainer.", 600, 625);
+    context.font = "28px sans-serif";
+    context.fillText("Your round may differ.", 600, 680);
+    context.fillStyle = "#2563eb";
+    context.font = "bold 32px sans-serif";
+    context.fillText(quizUrl, 600, 780);
+    return canvas;
+}
+
+async function saveScoreImage() {
+    if (saveImageBtn.disabled) return;
+    const version = sharingVersion;
+    const roundScore = score;
+    let link;
+    let objectUrl;
+    saveImageBtn.disabled = true;
+    saveImageStatus.textContent = "Preparing your score image…";
+    try {
+        link = document.createElement("a");
+        if (!("download" in link) || typeof URL.createObjectURL !== "function" ||
+            typeof URL.revokeObjectURL !== "function") throw new Error("Download unavailable");
+        const canvas = scoreImage(roundScore);
+        const blob = await new Promise((resolve, reject) => {
+            const timer = setTimeout(() => reject(new Error("Image preparation timed out")), 10000);
+            try {
+                canvas.toBlob((image) => {
+                    clearTimeout(timer);
+                    if (image) resolve(image);
+                    else reject(new Error("Image preparation failed"));
+                }, "image/png");
+            } catch (error) {
+                clearTimeout(timer);
+                reject(error);
+            }
+        });
+        if (version !== sharingVersion) return;
+        objectUrl = URL.createObjectURL(blob);
+        link.href = objectUrl;
+        link.download = `quiz-quest-score-${roundScore}-of-${roundSize}.png`;
+        link.hidden = true;
+        document.body.append(link);
+        link.click();
+        // Browsers don't report whether a user accepts or blocks a download.
+        saveImageStatus.textContent = "Image download requested. If it didn’t save, use Copy Result to send your score and link.";
+    } catch {
+        if (version === sharingVersion) {
+            saveImageStatus.textContent = "Saving an image isn’t available here. Use Copy Result to send your score and link. Your result is still here.";
+        }
+    } finally {
+        if (link) link.remove();
+        // Allow the browser time to consume the blob before releasing it.
+        if (objectUrl) setTimeout(() => URL.revokeObjectURL(objectUrl), 60000);
+        if (version === sharingVersion) saveImageBtn.disabled = false;
+    }
 }
 
 async function copyResult() {
@@ -405,6 +493,7 @@ nextQuestionBtn.addEventListener("click", () => {
 playAgainBtn.addEventListener("click", resetQuiz);
 shareResultBtn.addEventListener("click", shareResult);
 copyResultBtn.addEventListener("click", copyResult);
+saveImageBtn.addEventListener("click", saveScoreImage);
 resumeBtn.addEventListener("click", resumeRound);
 discardBtn.addEventListener("click", resetQuiz);
 
