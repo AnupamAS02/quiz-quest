@@ -10,6 +10,9 @@ function element() {
             remove: (...names) => names.forEach((name) => classes.delete(name)),
             contains: (name) => classes.has(name),
         },
+        children: [], open: false,
+        append(...items) { this.children.push(...items); },
+        replaceChildren(...items) { this.children = items; },
         style: {}, dataset: {}, attributes: {}, listeners: {},
         textContent: "", value: "", disabled: false,
         setAttribute(name, value) { this.attributes[name] = value; },
@@ -24,6 +27,7 @@ const answers = Array.from({ length: 4 }, element);
 const context = vm.createContext({
     Math,
     document: {
+        createElement: () => element(),
         getElementById: (id) => elements[id] ||= element(),
         querySelectorAll: () => answers,
     },
@@ -76,13 +80,36 @@ for (let index = 0; index < 5; index++) {
 }
 assert.equal(elements["final-score"].textContent, "You scored 4 out of 5 (80%)");
 assert.match(elements["final-message"].textContent, /Alex/);
+const completedQuestions = run("questions");
+const completedAnswers = Array.from(run("selectedAnswers"));
+assert.equal(completedAnswers.length, 5, "Repeated clicks must not record extra answers");
+assert.equal(elements["answer-review"].open, false);
+const reviewItems = elements["review-list"].children;
+assert.equal(reviewItems.length, 5);
+for (const [index, item] of reviewItems.entries()) {
+    const question = completedQuestions[index];
+    const [heading, outcome, selected, correct, explanation, source] = item.children;
+    assert.equal(heading.textContent, `Question ${index + 1}: ${question.question}`);
+    assert.equal(outcome.textContent, index === 1 ? "Not quite" : "Correct");
+    assert.equal(selected.textContent, `Your answer: ${question.choices[completedAnswers[index]]}`);
+    assert.equal(correct.textContent, `Correct answer: ${question.choices[question.correctIndex]}`);
+    assert.equal(explanation.textContent, question.explanation);
+    assert.equal(source.href, question.source);
+    assert.equal(source.target, "_blank");
+    assert.equal(source.rel, "noopener noreferrer");
+}
+elements["answer-review"].open = true;
 const poolBeforeReset = run("remainingQuestions.length");
 elements["play-again-btn"].listeners.click();
 assert.equal(run("score"), 0);
+assert.equal(run("selectedAnswers.length"), 0);
+assert.equal(elements["review-list"].children.length, 0);
+assert.equal(elements["answer-review"].open, false);
 assert.equal(elements["player-name"].value, "");
 assert.equal(elements["progress-fill"].style.width, "0%");
 assert.equal(run("remainingQuestions.length"), poolBeforeReset);
 assert.equal(elements["answer-feedback"].textContent, "");
+let previousRoundIds = completedQuestions.map((question) => question.id);
 for (const targetScore of [0, 5]) {
     elements["player-name"].value = "Sam";
     submit({ preventDefault() {} });
@@ -94,6 +121,12 @@ for (const targetScore of [0, 5]) {
     }
     assert.match(elements["final-score"].textContent, new RegExp(`You scored ${targetScore} out of 5`));
     assert.match(elements["final-message"].textContent, /Sam/);
+    assert.equal(elements["review-list"].children.length, 5);
+    assert.ok(elements["review-list"].children.every((item) =>
+        item.children[1].textContent === (targetScore === 5 ? "Correct" : "Not quite")));
+    const currentRoundIds = Array.from(run("questions.map(q => q.id)"));
+    assert.ok(currentRoundIds.every((id) => !previousRoundIds.includes(id)), "Replay review must use the new round");
+    previousRoundIds = currentRoundIds;
     elements["play-again-btn"].listeners.click();
 }
 console.log("Passed: 20-question bank, 100 fresh rounds, validation, feedback, scores 0/4/5, progress, results and reset.");

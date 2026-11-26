@@ -10,6 +10,9 @@ function element() {
             remove: (...names) => names.forEach((name) => classes.delete(name)),
             contains: (name) => classes.has(name),
         },
+        children: [], open: false,
+        append(...items) { this.children.push(...items); },
+        replaceChildren(...items) { this.children = items; },
         style: {}, dataset: {}, textContent: "", value: "", disabled: false,
         setAttribute() {}, addEventListener() {},
         focus() { this.focused = true; },
@@ -21,6 +24,7 @@ const navigator = {};
 const context = vm.createContext({
     Math, navigator,
     document: {
+        createElement: () => element(),
         getElementById: (id) => elements[id] ||= element(),
         querySelectorAll: () => Array.from({ length: 4 }, element),
     },
@@ -30,6 +34,8 @@ const run = (code) => vm.runInContext(code, context);
 const url = "https://anupamas02.github.io/quiz-quest/";
 
 (async () => {
+    run("questions = drawRound(); selectedAnswers = questions.map(q => q.correctIndex)");
+    const privateQuestion = run("questions[0]");
     for (const score of [0, 3, 5]) {
         run(`score = ${score}; playerName = "Private Name"; showResults()`);
         const result = elements["final-score"].textContent;
@@ -40,6 +46,10 @@ const url = "https://anupamas02.github.io/quiz-quest/";
         assert.match(payload.text, new RegExp(`I scored ${score} out of 5`));
         assert.match(payload.text, /round may differ/);
         assert.ok(!JSON.stringify(payload).includes("Private Name"));
+        for (const privateText of [privateQuestion.question, privateQuestion.choices[privateQuestion.correctIndex], privateQuestion.explanation, privateQuestion.source]) {
+            assert.ok(!JSON.stringify(payload).includes(privateText), "Sharing must not include review contents");
+        }
+        assert.equal(elements["review-list"].children.length, 5);
         assert.equal(elements["final-score"].textContent, result);
         assert.equal(run("score"), score);
     }

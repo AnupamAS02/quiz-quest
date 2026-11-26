@@ -41,6 +41,8 @@ const finalMessage = document.getElementById("final-message");
 const finalScore = document.getElementById("final-score");
 const resultsHeading = document.getElementById("results-heading");
 const playAgainBtn = document.getElementById("play-again-btn");
+const answerReview = document.getElementById("answer-review");
+const reviewList = document.getElementById("review-list");
 const shareResultBtn = document.getElementById("share-result-btn");
 const copyResultBtn = document.getElementById("copy-result-btn");
 const shareStatus = document.getElementById("share-status");
@@ -111,6 +113,44 @@ let currentQuestionIndex = 0;
 let score = 0;
 let playerName = "";
 let answered = false;
+let selectedAnswers = [];
+
+function clearReview() {
+    selectedAnswers = [];
+    answerReview.open = false;
+    reviewList.replaceChildren();
+}
+
+function renderReview() {
+    answerReview.open = false;
+    reviewList.replaceChildren();
+    questions.forEach((question, index) => {
+        const selectedIndex = selectedAnswers[index];
+        const isCorrect = selectedIndex === question.correctIndex;
+        const item = document.createElement("li");
+        item.classList.add("review-item");
+
+        const heading = document.createElement("h3");
+        heading.textContent = `Question ${index + 1}: ${question.question}`;
+        const outcome = document.createElement("p");
+        outcome.classList.add("review-outcome", isCorrect ? "review-correct" : "review-incorrect");
+        outcome.textContent = isCorrect ? "Correct" : "Not quite";
+        const selected = document.createElement("p");
+        selected.textContent = `Your answer: ${question.choices[selectedIndex]}`;
+        const correct = document.createElement("p");
+        correct.textContent = `Correct answer: ${question.choices[question.correctIndex]}`;
+        const explanation = document.createElement("p");
+        explanation.textContent = question.explanation;
+        const source = document.createElement("a");
+        source.href = question.source;
+        source.target = "_blank";
+        source.rel = "noopener noreferrer";
+        source.textContent = `Official source: ${question.source === teamSource ? "Brainer’s AI team" : "Brainer’s CEO guide"} (opens in a new tab)`;
+
+        item.append(heading, outcome, selected, correct, explanation, source);
+        reviewList.append(item);
+    });
+}
 
 function showScreen(screenToShow) {
     startScreen.classList.add("hidden");
@@ -146,6 +186,7 @@ function handleAnswerClick(event) {
     answered = true;
     const clickedButton = event.currentTarget;
     const selectedIndex = Number(clickedButton.dataset.index);
+    selectedAnswers[currentQuestionIndex] = selectedIndex;
     const currentQuestion = questions[currentQuestionIndex];
     const correctIndex = currentQuestion.correctIndex;
     answerButtons.forEach((button) => { button.disabled = true; });
@@ -168,6 +209,7 @@ function handleAnswerClick(event) {
 
 function showResults() {
     clearSharing();
+    renderReview();
     const percentage = Math.round((score / roundSize) * 100);
     let message;
     if (percentage === 100) {
@@ -187,6 +229,7 @@ function showResults() {
 
 function resetQuiz() {
     clearSharing();
+    clearReview();
     finalMessage.textContent = "";
     finalScore.textContent = "";
     currentQuestionIndex = 0;
@@ -210,6 +253,7 @@ startForm.addEventListener("submit", (event) => {
         playerNameInput.reportValidity();
         return;
     }
+    clearReview();
     playerName = name;
     questions = drawRound();
     currentQuestionIndex = 0;
