@@ -9,4 +9,15 @@ This repository is worked on by a Brainer team. This file is on `brainer/work`, 
 - **One pull request.** The team's work comes to `main` as a pull request from `brainer/work`. Only the owner merges it; the team never does. Once it's merged, `brainer/work` starts again from `main`.
 - **Your own changes stay yours.** The team brings in what changes on the default branch before it builds on it.
 
+## What this is
+
+**quiz quest**
+
+A multiple-choice quiz app built with vanilla HTML, CSS, and JavaScript. No frameworks, no libraries — just the fundamentals.
+
+## What the code says
+
+- Built with: static site
+- Pages: /
+
 Repository: AnupamAS02/quiz-quest
