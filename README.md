@@ -26,6 +26,8 @@ A multiple-choice quiz app built with vanilla HTML, CSS, and JavaScript. No fram
 - Smooth fade transitions between screens
 - Fully responsive — works on mobile and desktop
 - Play again without refreshing
+- Share your Brainer score and quiz link without your entered name
+- Device sharing where supported, clipboard copying or selectable text as a fallback
 
 ## Tech stack
 
@@ -51,6 +53,11 @@ Run the dependency-free regression checks:
 
 ```bash
 node tests/quiz.test.js
+node tests/sharing.test.js
 ```
+
+Result sharing always uses `https://anupamas02.github.io/quiz-quest/`, not the current address or any player data in it. Shared rounds are randomized independently; no identical-question challenge is implied. Share cancellation keeps the result on screen. If device sharing fails, use Copy Result; if clipboard access is missing or denied, copy from the selected, read-only text field. Play Again clears the result and sharing state, including pending sharing replies.
+
+Sharing regression checks simulate native sharing success/cancellation/failure, clipboard success/denial/absence, scores 0/3/5 and late responses after replay. Also spot-check a native device share sheet on the deployed HTTPS site, since desktop browser automation cannot verify OS-specific share targets.
 
 For browser testing, run `python3 -m http.server 8000` and open `http://localhost:8000`. Use Tab, Enter or Space to play with the keyboard. The live-demo URL is the founder’s GitHub Pages site. Changes on `brainer/work` remain pending review, merge and founder deployment; the live site may still show an earlier quiz.

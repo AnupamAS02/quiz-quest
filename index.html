@@ -59,7 +59,19 @@
             <h2 id="results-heading" tabindex="-1">Quiz Complete!</h2>
             <p id="final-message">Great job, player!</p>
             <p id="final-score">You scored 0 out of 5</p>
-            <button id="play-again-btn">Play Again</button>
+            <button id="play-again-btn" type="button">Play Again</button>
+            <div class="result-sharing" aria-label="Share your result">
+                <p id="share-note">Share your score and invite a friend to try a Brainer round. Questions may differ. Your name stays here.</p>
+                <div class="share-actions">
+                    <button id="share-result-btn" class="secondary-btn" type="button" aria-describedby="share-note">Share Score</button>
+                    <button id="copy-result-btn" class="secondary-btn" type="button">Copy Result</button>
+                </div>
+                <p id="share-status" role="status" aria-live="polite" aria-atomic="true"></p>
+                <div id="manual-copy" class="hidden">
+                    <label for="share-text">Copy this result and link:</label>
+                    <textarea id="share-text" readonly rows="5" spellcheck="false"></textarea>
+                </div>
+            </div>
         </section>
     </main>
 

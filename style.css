@@ -269,3 +269,57 @@ button:active {
         font-size: 1.4rem;
     }
 }
+/* Keep replay primary and sharing easy to reach on small screens. */
+.result-sharing {
+    margin-top: 2rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--color-secondary);
+}
+
+.share-actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.75rem;
+}
+
+.secondary-btn {
+    background-color: var(--color-bg);
+    color: var(--color-primary);
+    border: 2px solid var(--color-primary);
+}
+
+.secondary-btn:hover:not(:disabled) {
+    background-color: #dbeafe;
+}
+
+.secondary-btn:disabled {
+    opacity: 0.65;
+    cursor: wait;
+    transform: none;
+}
+
+#share-status:not(:empty) {
+    margin: 1rem 0;
+}
+
+#manual-copy label {
+    display: block;
+    margin-bottom: 0.5rem;
+}
+
+#share-text {
+    width: 100%;
+    padding: 0.75rem;
+    font: inherit;
+    color: var(--color-text);
+    background-color: var(--color-bg);
+    border: 2px solid var(--color-secondary);
+    border-radius: var(--radius);
+    resize: vertical;
+}
+
+#share-text:focus-visible {
+    outline: 3px solid var(--color-accent);
+    outline-offset: 3px;
+}

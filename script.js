@@ -41,6 +41,71 @@ const finalMessage = document.getElementById("final-message");
 const finalScore = document.getElementById("final-score");
 const resultsHeading = document.getElementById("results-heading");
 const playAgainBtn = document.getElementById("play-again-btn");
+const shareResultBtn = document.getElementById("share-result-btn");
+const copyResultBtn = document.getElementById("copy-result-btn");
+const shareStatus = document.getElementById("share-status");
+const manualCopy = document.getElementById("manual-copy");
+const shareText = document.getElementById("share-text");
+const quizUrl = "https://anupamas02.github.io/quiz-quest/";
+let sharingVersion = 0;
+
+// Build only from the score: never include the player's name or current URL.
+function resultText() {
+    return `I scored ${score} out of ${roundSize} on the Brainer quiz at Quiz Quest. How many can you get right? Try five questions — your round may differ.`;
+}
+
+function clearSharing() {
+    sharingVersion++;
+    shareStatus.textContent = "";
+    shareText.value = "";
+    manualCopy.classList.add("hidden");
+    shareResultBtn.disabled = false;
+    copyResultBtn.disabled = false;
+}
+
+async function copyResult() {
+    const version = sharingVersion;
+    const text = `${resultText()}\n${quizUrl}`;
+    copyResultBtn.disabled = true;
+    shareStatus.textContent = "";
+    try {
+        await navigator.clipboard.writeText(text);
+        if (version !== sharingVersion) return;
+        manualCopy.classList.add("hidden");
+        shareStatus.textContent = "Result and link copied. Ready to send!";
+    } catch {
+        if (version !== sharingVersion) return;
+        shareText.value = text;
+        manualCopy.classList.remove("hidden");
+        shareStatus.textContent = "Automatic copying isn’t available. Copy the selected text below to share your result.";
+        shareText.focus();
+        shareText.select();
+    } finally {
+        if (version === sharingVersion) copyResultBtn.disabled = false;
+    }
+}
+
+async function shareResult() {
+    if (typeof navigator.share !== "function") {
+        await copyResult();
+        return;
+    }
+    const version = sharingVersion;
+    shareStatus.textContent = "";
+    shareResultBtn.disabled = true;
+    try {
+        await navigator.share({ title: "Quiz Quest | Brainer Quiz", text: resultText(), url: quizUrl });
+        if (version === sharingVersion) shareStatus.textContent = "Sharing complete. Ready for another round?";
+    } catch (error) {
+        if (version !== sharingVersion) return;
+        // Cancellation is not a failure and must not silently copy anything.
+        shareStatus.textContent = error && error.name === "AbortError"
+            ? "Sharing cancelled. Your result is still here."
+            : "Device sharing isn’t available. Use Copy Result to share your score and link.";
+    } finally {
+        if (version === sharingVersion) shareResultBtn.disabled = false;
+    }
+}
 
 let currentQuestionIndex = 0;
 let score = 0;
@@ -102,6 +167,7 @@ function handleAnswerClick(event) {
 }
 
 function showResults() {
+    clearSharing();
     const percentage = Math.round((score / roundSize) * 100);
     let message;
     if (percentage === 100) {
@@ -120,6 +186,9 @@ function showResults() {
 }
 
 function resetQuiz() {
+    clearSharing();
+    finalMessage.textContent = "";
+    finalScore.textContent = "";
     currentQuestionIndex = 0;
     score = 0;
     playerName = "";
@@ -159,3 +228,5 @@ nextQuestionBtn.addEventListener("click", () => {
     else showResults();
 });
 playAgainBtn.addEventListener("click", resetQuiz);
+shareResultBtn.addEventListener("click", shareResult);
+copyResultBtn.addEventListener("click", copyResult);
