@@ -1,138 +1,108 @@
-const questions = [
-    {
-        question: "Which HTML tag is used for the largest heading?",
-        choices: ["<h6>", "<heading>", "<h1>", "<head>"],
-        correctIndex: 2,
-    },
-    {
-        question: "What does CSS stand for?",
-        choices: [
-            "Computer Style Sheets",
-            "Cascading Style Sheets",
-            "Creative Style System",
-            "Colorful Style Syntax",
-        ],
-        correctIndex: 1,
-    },
-    {
-        question: "Which keyword declares a variable that cannot be reassigned?",
-        choices: ["var", "let", "const", "static"],
-        correctIndex: 2,
-    },
-    {
-        question: "What will `typeof []` return in JavaScript?",
-        choices: ["'array'", "'object'", "'list'", "'undefined'"],
-        correctIndex: 1,
-    },
-    {
-        question: "Which CSS property creates space INSIDE an element's border?",
-        choices: ["margin", "padding", "spacing", "gap"],
-        correctIndex: 1,
-    },
-];
-// ============================================
-// DOM Elements
-// ============================================
+const roundSize = 5;
+let remainingQuestions = [];
+let questions = [];
+
+// Draw without replacement. Use the unseen bank before starting a new cycle.
+function shuffle(items) {
+    const shuffled = [...items];
+    for (let index = shuffled.length - 1; index > 0; index--) {
+        const other = Math.floor(Math.random() * (index + 1));
+        [shuffled[index], shuffled[other]] = [shuffled[other], shuffled[index]];
+    }
+    return shuffled;
+}
+
+function drawRound() {
+    const round = [];
+    while (round.length < roundSize) {
+        if (remainingQuestions.length === 0) {
+            remainingQuestions = shuffle(questionBank.filter((question) =>
+                !round.includes(question) && !questions.includes(question)));
+        }
+        round.push(remainingQuestions.pop());
+    }
+    return round;
+}
+
 const startScreen = document.getElementById("start-screen");
 const quizScreen = document.getElementById("quiz-screen");
 const resultsScreen = document.getElementById("results-screen");
-
 const startForm = document.getElementById("start-form");
 const playerNameInput = document.getElementById("player-name");
-
 const questionCounter = document.getElementById("question-counter");
 const scoreDisplay = document.getElementById("score-display");
 const questionText = document.getElementById("question-text");
 const progressFill = document.getElementById("progress-fill");
+const progressBar = document.getElementById("quiz-progress");
 const answerButtons = document.querySelectorAll(".answer-btn");
-
+const answerFeedback = document.getElementById("answer-feedback");
+const nextQuestionBtn = document.getElementById("next-question-btn");
 const finalMessage = document.getElementById("final-message");
 const finalScore = document.getElementById("final-score");
+const resultsHeading = document.getElementById("results-heading");
 const playAgainBtn = document.getElementById("play-again-btn");
 
-// ============================================
-// State (the data that changes as the quiz runs)
-// ============================================
 let currentQuestionIndex = 0;
 let score = 0;
 let playerName = "";
-// ============================================
-// Helper: switch which screen is visible
-// ============================================
+let answered = false;
+
 function showScreen(screenToShow) {
     startScreen.classList.add("hidden");
     quizScreen.classList.add("hidden");
     resultsScreen.classList.add("hidden");
-
     screenToShow.classList.remove("hidden");
 }
 
-// ============================================
-// Render the current question and its choices
-// ============================================
+function updateProgress(completed) {
+    progressFill.style.width = `${(completed / roundSize) * 100}%`;
+    progressBar.setAttribute("aria-valuenow", completed);
+}
+
 function loadQuestion() {
     const currentQuestion = questions[currentQuestionIndex];
-
+    answered = false;
     questionText.textContent = currentQuestion.question;
-    questionCounter.textContent = `Question ${currentQuestionIndex + 1} of ${questions.length}`;
+    questionCounter.textContent = `Question ${currentQuestionIndex + 1} of ${roundSize}`;
     scoreDisplay.textContent = `Score: ${score}`;
-
-    // Update progress bar
-    const progressPercent = ((currentQuestionIndex) / questions.length) * 100;
-    progressFill.style.width = `${progressPercent}%`;
-
+    updateProgress(currentQuestionIndex);
+    answerFeedback.textContent = "";
+    nextQuestionBtn.classList.add("hidden");
     answerButtons.forEach((button, index) => {
         button.textContent = currentQuestion.choices[index];
         button.disabled = false;
-        button.style.backgroundColor = "";
+        button.classList.remove("correct", "wrong");
     });
+    questionText.focus();
 }
 
-// ============================================
-// Handle the user clicking an answer button
-// ============================================
 function handleAnswerClick(event) {
-    const clickedButton = event.target;
+    if (answered) return;
+    answered = true;
+    const clickedButton = event.currentTarget;
     const selectedIndex = Number(clickedButton.dataset.index);
-    const correctIndex = questions[currentQuestionIndex].correctIndex;
-
-    // Disable all buttons so user can't click twice
-    answerButtons.forEach((button) => {
-        button.disabled = true;
-    });
-
-    // Show correct/wrong colors
+    const currentQuestion = questions[currentQuestionIndex];
+    const correctIndex = currentQuestion.correctIndex;
+    answerButtons.forEach((button) => { button.disabled = true; });
+    answerButtons[correctIndex].classList.add("correct");
+    answerButtons[correctIndex].textContent += " — Correct answer";
     if (selectedIndex === correctIndex) {
-        clickedButton.style.backgroundColor = "var(--color-correct)";
         score++;
+        answerFeedback.textContent = `Correct! ${currentQuestion.explanation}`;
     } else {
-        clickedButton.style.backgroundColor = "var(--color-wrong)";
-        // Also highlight the correct answer in green
-        answerButtons[correctIndex].style.backgroundColor = "var(--color-correct)";
+        clickedButton.classList.add("wrong");
+        clickedButton.textContent += " — Your answer";
+        answerFeedback.textContent = `Not quite. ${currentQuestion.explanation}`;
     }
-
     scoreDisplay.textContent = `Score: ${score}`;
-
-    // Wait 1.2 seconds, then move to next question (or finish)
-    setTimeout(() => {
-        currentQuestionIndex++;
-        if (currentQuestionIndex < questions.length) {
-            loadQuestion();
-        } else {
-            showResults();
-        }
-    }, 1200);
+    updateProgress(currentQuestionIndex + 1);
+    nextQuestionBtn.textContent = currentQuestionIndex === roundSize - 1 ? "See Results" : "Next Question";
+    nextQuestionBtn.classList.remove("hidden");
+    nextQuestionBtn.focus();
 }
 
-// ============================================
-// Show the results screen
-// ============================================
 function showResults() {
-    progressFill.style.width = "100%";  // NEW
-
-    const total = questions.length;
-    const percentage = Math.round((score / total) * 100);
-
+    const percentage = Math.round((score / roundSize) * 100);
     let message;
     if (percentage === 100) {
         message = `Perfect score, ${playerName}! 🏆`;
@@ -140,44 +110,52 @@ function showResults() {
         message = `Excellent work, ${playerName}!`;
     } else if (percentage >= 60) {
         message = `Nice job, ${playerName}!`;
-    } else if (percentage >= 40) {
-        message = `Not bad, ${playerName}. Keep practicing!`;
     } else {
-        message = `Tough one, ${playerName}. Try again!`;
+        message = `Thanks for playing, ${playerName}! Ready for another round?`;
     }
-
     finalMessage.textContent = message;
-    finalScore.textContent = `You scored ${score} out of ${total} (${percentage}%)`;
-
+    finalScore.textContent = `You scored ${score} out of ${roundSize} (${percentage}%)`;
     showScreen(resultsScreen);
+    resultsHeading.focus();
 }
 
-// ============================================
-// Reset everything and go back to the start
-// ============================================
 function resetQuiz() {
     currentQuestionIndex = 0;
     score = 0;
     playerName = "";
+    answered = false;
     playerNameInput.value = "";
-    progressFill.style.width = "0%";  // NEW
+    answerFeedback.textContent = "";
+    nextQuestionBtn.classList.add("hidden");
+    updateProgress(0);
     showScreen(startScreen);
+    playerNameInput.focus();
 }
 
-// ============================================
-// Event listeners (wire everything up)
-// ============================================
+playerNameInput.addEventListener("input", () => playerNameInput.setCustomValidity(""));
 startForm.addEventListener("submit", (event) => {
     event.preventDefault();
-    playerName = playerNameInput.value.trim();
+    const name = playerNameInput.value.trim();
+    if (name.length < 2) {
+        playerNameInput.setCustomValidity("Enter a name with at least two characters.");
+        playerNameInput.reportValidity();
+        return;
+    }
+    playerName = name;
+    questions = drawRound();
+    currentQuestionIndex = 0;
+    score = 0;
     showScreen(quizScreen);
     loadQuestion();
 });
-
 answerButtons.forEach((button, index) => {
     button.dataset.index = index;
     button.addEventListener("click", handleAnswerClick);
 });
-
+nextQuestionBtn.addEventListener("click", () => {
+    if (!answered) return;
+    currentQuestionIndex++;
+    if (currentQuestionIndex < roundSize) loadQuestion();
+    else showResults();
+});
 playAgainBtn.addEventListener("click", resetQuiz);
-
