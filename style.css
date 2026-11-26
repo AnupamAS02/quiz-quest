@@ -2,12 +2,13 @@
    1. CSS Variables (custom properties)
    ============================================ */
 :root {
-    --color-bg: #1a1a2e;
-    --color-surface: #16213e;
-    --color-primary: #0f3460;
-    --color-accent: #e94560;
-    --color-text: #f1f1f1;
-    --color-text-muted: #a0a0b0;
+    --color-bg: #f8fafc;
+    --color-surface: #ffffff;
+    --color-primary: #2563eb;
+    --color-secondary: #93c5fd;
+    --color-accent: #f59e0b;
+    --color-text: #172554;
+    --color-text-muted: #475569;
     --color-correct: #4ade80;
     --color-wrong: #f87171;
 
@@ -44,7 +45,7 @@ header {
 
 header h1 {
     font-size: 2.5rem;
-    color: var(--color-accent);
+    color: var(--color-primary);
     letter-spacing: 1px;
 }
 
@@ -103,9 +104,9 @@ label {
 input[type="text"] {
     padding: 0.75rem 1rem;
     font-size: 1rem;
-    background-color: var(--color-primary);
+    background-color: var(--color-bg);
     color: var(--color-text);
-    border: 2px solid transparent;
+    border: 2px solid var(--color-secondary);
     border-radius: var(--radius);
     transition: border-color var(--transition);
 }
@@ -122,8 +123,8 @@ button {
     padding: 0.85rem 1.5rem;
     font-size: 1rem;
     font-weight: 600;
-    background-color: var(--color-accent);
-    color: var(--color-text);
+    background-color: var(--color-primary);
+    color: var(--color-surface);
     border: none;
     border-radius: var(--radius);
     cursor: pointer;
@@ -131,8 +132,13 @@ button {
 }
 
 button:hover {
-    background-color: #d63852;
+    background-color: #1d4ed8;
     transform: translateY(-2px);
+}
+
+button:focus-visible {
+    outline: 3px solid var(--color-accent);
+    outline-offset: 3px;
 }
 
 button:active {
@@ -144,6 +150,8 @@ button:active {
    ============================================ */
 .quiz-info {
     display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
     justify-content: space-between;
     margin-bottom: 1.5rem;
     color: var(--color-text-muted);
@@ -162,12 +170,13 @@ button:active {
 }
 
 .answer-btn {
-    background-color: var(--color-primary);
+    background-color: var(--color-secondary);
+    color: var(--color-text);
     text-align: left;
 }
 
-.answer-btn:hover {
-    background-color: #1a4a85;
+.answer-btn:hover:not(:disabled) {
+    background-color: #bfdbfe;
 }
 
 /* ============================================
@@ -202,7 +211,7 @@ button:active {
 .progress-bar {
     width: 100%;
     height: 8px;
-    background-color: var(--color-primary);
+    background-color: var(--color-secondary);
     border-radius: var(--radius);
     overflow: hidden;
     margin-bottom: 1.5rem;
@@ -211,7 +220,7 @@ button:active {
 .progress-fill {
     height: 100%;
     width: 0%;
-    background-color: var(--color-accent);
+    background-color: var(--color-primary);
     transition: width 0.4s ease;
 }
 
