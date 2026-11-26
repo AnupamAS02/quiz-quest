@@ -57,11 +57,17 @@ for (let index = 0; index < 100; index++) {
 }
 assert.equal(new Set(firstCycle).size, 20);
 const submit = elements["start-form"].listeners.submit;
-elements["player-name"].value = "  ";
+for (const nickname of ["A", " A ", "A".repeat(21)]) {
+    elements["player-name"].value = nickname;
+    submit({ preventDefault() {} });
+    assert.match(elements["player-name"].validationMessage, /2–20 characters/);
+    assert.equal(run("playerName"), "");
+    elements["player-name"].listeners.input();
+    assert.equal(elements["player-name"].validationMessage, "");
+}
+elements["player-name"].value = "  Alex  ";
 submit({ preventDefault() {} });
-assert.ok(elements["player-name"].validationMessage);
-elements["player-name"].value = "Alex";
-submit({ preventDefault() {} });
+assert.equal(run("playerName"), "Alex");
 for (let index = 0; index < 5; index++) {
     assert.equal(elements["question-counter"].textContent, `Question ${index + 1} of 5`);
     const correct = run("questions[currentQuestionIndex].correctIndex");
@@ -129,4 +135,43 @@ for (const targetScore of [0, 5]) {
     previousRoundIds = currentRoundIds;
     elements["play-again-btn"].listeners.click();
 }
-console.log("Passed: 20-question bank, 100 fresh rounds, validation, feedback, scores 0/4/5, progress, results and reset.");
+const anonymousMessages = {
+    0: "Thanks for playing! Ready for another round?",
+    3: "Nice job!",
+    4: "Excellent work!",
+    5: "Perfect score! 🏆",
+};
+for (const nickname of ["", " ", " \t\n ", "Jo", "A".repeat(20), "<b>Alex</b>"]) {
+    for (const targetScore of [0, 3, 4, 5]) {
+        elements["player-name"].value = nickname;
+        submit({ preventDefault() {} });
+        assert.equal(elements["player-name"].validationMessage, "");
+        assert.equal(run("playerName"), nickname.trim());
+        assert.equal(elements["quiz-screen"].classList.contains("hidden"), false);
+        for (let index = 0; index < 5; index++) {
+            const correct = run("questions[currentQuestionIndex].correctIndex");
+            const selected = index < targetScore ? correct : (correct + 1) % 4;
+            answers[selected].listeners.click({ currentTarget: answers[selected] });
+            elements["next-question-btn"].listeners.click();
+        }
+        assert.equal(elements["final-score"].textContent, `You scored ${targetScore} out of 5 (${targetScore * 20}%)`);
+        if (nickname.trim()) {
+            assert.ok(elements["final-message"].textContent.includes(`, ${nickname.trim()}!`));
+        } else {
+            assert.equal(elements["final-message"].textContent, anonymousMessages[targetScore]);
+        }
+        assert.equal(elements["review-list"].children.length, 5);
+        assert.ok(!run("resultText()").includes("Alex"));
+        elements["play-again-btn"].listeners.click();
+        assert.equal(run("playerName"), "");
+        assert.equal(elements["player-name"].value, "");
+        assert.equal(elements["player-name"].validationMessage, "");
+        assert.equal(elements["review-list"].children.length, 0);
+    }
+}
+const html = fs.readFileSync("index.html", "utf8");
+assert.match(html, /<label for="player-name">Nickname \(optional, 2–20 characters\):<\/label>/);
+const nicknameInput = html.match(/<input[^>]+id="player-name"[^>]*>/)[0];
+assert.ok(!/\brequired\b|\bminlength\b/.test(nicknameInput), "Native validation must allow even a single space");
+assert.match(nicknameInput, /maxlength="20"/);
+console.log("Passed: 20-question bank, 100 fresh rounds, optional/trimmed nicknames, length limits, feedback, scores 0/3/4/5, review, progress, results and reset.");

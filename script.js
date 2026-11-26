@@ -211,15 +211,16 @@ function showResults() {
     clearSharing();
     renderReview();
     const percentage = Math.round((score / roundSize) * 100);
+    const personalGreeting = playerName ? `, ${playerName}` : "";
     let message;
     if (percentage === 100) {
-        message = `Perfect score, ${playerName}! 🏆`;
+        message = `Perfect score${personalGreeting}! 🏆`;
     } else if (percentage >= 80) {
-        message = `Excellent work, ${playerName}!`;
+        message = `Excellent work${personalGreeting}!`;
     } else if (percentage >= 60) {
-        message = `Nice job, ${playerName}!`;
+        message = `Nice job${personalGreeting}!`;
     } else {
-        message = `Thanks for playing, ${playerName}! Ready for another round?`;
+        message = `Thanks for playing${personalGreeting}! Ready for another round?`;
     }
     finalMessage.textContent = message;
     finalScore.textContent = `You scored ${score} out of ${roundSize} (${percentage}%)`;
@@ -237,6 +238,7 @@ function resetQuiz() {
     playerName = "";
     answered = false;
     playerNameInput.value = "";
+    playerNameInput.setCustomValidity("");
     answerFeedback.textContent = "";
     nextQuestionBtn.classList.add("hidden");
     updateProgress(0);
@@ -248,11 +250,12 @@ playerNameInput.addEventListener("input", () => playerNameInput.setCustomValidit
 startForm.addEventListener("submit", (event) => {
     event.preventDefault();
     const name = playerNameInput.value.trim();
-    if (name.length < 2) {
-        playerNameInput.setCustomValidity("Enter a name with at least two characters.");
+    if (name && (name.length < 2 || name.length > 20)) {
+        playerNameInput.setCustomValidity("Use 2–20 characters for your nickname, or leave it blank.");
         playerNameInput.reportValidity();
         return;
     }
+    playerNameInput.setCustomValidity("");
     clearReview();
     playerName = name;
     questions = drawRound();

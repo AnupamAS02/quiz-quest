@@ -14,7 +14,7 @@ function element() {
         append(...items) { this.children.push(...items); },
         replaceChildren(...items) { this.children = items; },
         style: {}, dataset: {}, textContent: "", value: "", disabled: false,
-        setAttribute() {}, addEventListener() {},
+        setAttribute() {}, addEventListener() {}, setCustomValidity() {},
         focus() { this.focused = true; },
         select() { this.selected = true; },
     };

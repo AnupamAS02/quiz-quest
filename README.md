@@ -22,7 +22,7 @@ A multiple-choice quiz app built with vanilla HTML, CSS, and JavaScript. No fram
 - Live score tracking and progress bar
 - Correct/wrong labels, color feedback and concise answer explanations
 - Player-controlled Next Question and See Results actions
-- Personalized end-game message based on performance
+- Optional nickname (2–20 characters) for a personalized end-game message; start without one for a natural, encouraging result
 - Smooth fade transitions between screens
 - Fully responsive — works on mobile and desktop
 - Play again without refreshing
@@ -62,7 +62,9 @@ Result sharing always uses `https://anupamas02.github.io/quiz-quest/`, not the c
 
 The results screen includes a collapsed Review Answers section. Open it with a tap, Enter or Space to see the five questions in round order, your selected answers, correct answers, explanations and official Brainer references. Source links open in a new tab so your result stays available. Tab reaches each source link. Play Again clears the review and closes it; sharing includes neither your name nor any review content.
 
-Quiz regression checks cover review contents for mixed, zero and perfect scores, source links, repeated answers and cleared review state on replay. Sharing regression checks simulate native sharing success/cancellation/failure, clipboard success/denial/absence, scores 0/3/5 and late responses after replay. Also spot-check a native device share sheet on the deployed HTTPS site, since desktop browser automation cannot verify OS-specific share targets.
+Nicknames are optional and kept only in the current page’s memory; no nickname is stored. Blank or whitespace-only entries start a round without personalization. Entered nicknames are trimmed and must contain 2–20 characters. Play Again clears the nickname.
+
+Quiz regression checks cover blank and whitespace-only starts, trimmed nicknames, length limits, encouraging results with and without nicknames, review contents for mixed, zero and perfect scores, source links, repeated answers and cleared review state on replay. Sharing regression checks simulate native sharing success/cancellation/failure, clipboard success/denial/absence, scores 0/3/5 and late responses after replay. Also spot-check a native device share sheet on the deployed HTTPS site, since desktop browser automation cannot verify OS-specific share targets.
 
 ## Shared-link preview
 

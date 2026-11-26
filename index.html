@@ -40,9 +40,9 @@
             <p>Answer five multiple-choice questions about Brainer’s AI team, tasks and founder decisions. New to Brainer? Read the answer explanations as you go.</p>
             <p>Each round draws from 20 questions. Play again for a fresh challenge.</p>
             <form id="start-form">
-                <label for="player-name">Enter your name:</label>
-                <input type="text" id="player-name" name="playerName" placeholder="e.g. Anupam Singh" required
-                    minlength="2" maxlength="20" />
+                <label for="player-name">Nickname (optional, 2–20 characters):</label>
+                <input type="text" id="player-name" name="playerName" placeholder="e.g. Alex"
+                    maxlength="20" />
                 <button type="submit">Start Quiz</button>
             </form>
         </section>
@@ -73,7 +73,7 @@
         <!-- Screen 3: Results (hidden for now) -->
         <section id="results-screen" class="screen hidden">
             <h2 id="results-heading" tabindex="-1">Quiz Complete!</h2>
-            <p id="final-message">Great job, player!</p>
+            <p id="final-message">Thanks for playing!</p>
             <p id="final-score">You scored 0 out of 5</p>
             <button id="play-again-btn" type="button">Play Again</button>
             <details id="answer-review" class="answer-review">
