@@ -24,6 +24,11 @@ function drawRound() {
     return round;
 }
 
+const resumeScreen = document.getElementById("resume-screen");
+const resumeHeading = document.getElementById("resume-heading");
+const resumeSummary = document.getElementById("resume-summary");
+const resumeBtn = document.getElementById("resume-btn");
+const discardBtn = document.getElementById("discard-btn");
 const startScreen = document.getElementById("start-screen");
 const quizScreen = document.getElementById("quiz-screen");
 const resultsScreen = document.getElementById("results-screen");
@@ -115,6 +120,113 @@ let playerName = "";
 let answered = false;
 let selectedAnswers = [];
 
+// sessionStorage is tab-scoped. Store only round data, never player identity.
+const progressKey = "quiz-quest:unfinished-round";
+const progressVersion = 1;
+const bankVersion = JSON.stringify(questionBank);
+const progressMaxAge = 24 * 60 * 60 * 1000;
+let storageAvailable = true;
+let pendingRound = null;
+
+function clearSavedProgress() {
+    pendingRound = null;
+    try {
+        sessionStorage.removeItem(progressKey);
+    } catch {
+        storageAvailable = false;
+    }
+}
+
+function validateProgress(data) {
+    if (!data || typeof data !== "object" || Array.isArray(data)) return null;
+    const fields = ["version", "bank", "savedAt", "questionIds", "remainingIds", "answers", "index"];
+    if (Object.keys(data).length !== fields.length || !fields.every((key) => Object.hasOwn(data, key))) return null;
+    if (data.version !== progressVersion || data.bank !== bankVersion) return null;
+    const age = Date.now() - data.savedAt;
+    if (!Number.isSafeInteger(data.savedAt) || age < 0 || age > progressMaxAge) return null;
+    if (!Number.isInteger(data.index) || data.index < 0 || data.index >= roundSize) return null;
+    if (!Array.isArray(data.questionIds) || data.questionIds.length !== roundSize ||
+        !Array.isArray(data.remainingIds) || !Array.isArray(data.answers)) return null;
+    const byId = new Map(questionBank.map((question) => [question.id, question]));
+    const allIds = [...data.questionIds, ...data.remainingIds];
+    if (new Set(allIds).size !== allIds.length || !allIds.every((id) => byId.has(id))) return null;
+    const restoredQuestions = data.questionIds.map((id) => byId.get(id));
+    if (data.answers.length !== data.index && data.answers.length !== data.index + 1) return null;
+    if (!data.answers.every((answer, index) => Number.isInteger(answer) &&
+        answer >= 0 && answer < restoredQuestions[index].choices.length)) return null;
+    return {
+        questions: restoredQuestions,
+        remainingQuestions: data.remainingIds.map((id) => byId.get(id)),
+        answers: [...data.answers],
+        index: data.index,
+    };
+}
+
+function readSavedProgress() {
+    let raw;
+    try {
+        raw = sessionStorage.getItem(progressKey);
+    } catch {
+        clearSavedProgress();
+        storageAvailable = false;
+        return null;
+    }
+    if (raw === null) return null;
+    try {
+        const restored = validateProgress(JSON.parse(raw));
+        if (!restored) clearSavedProgress();
+        return restored;
+    } catch {
+        // Bad JSON is not a storage failure: the next round can still save.
+        clearSavedProgress();
+        return null;
+    }
+}
+
+function saveProgress() {
+    if (!storageAvailable) return;
+    try {
+        sessionStorage.setItem(progressKey, JSON.stringify({
+            version: progressVersion,
+            bank: bankVersion,
+            savedAt: Date.now(),
+            questionIds: questions.map((question) => question.id),
+            remainingIds: remainingQuestions.map((question) => question.id),
+            answers: selectedAnswers,
+            index: currentQuestionIndex,
+        }));
+    } catch {
+        // Quota or privacy restrictions must never interrupt answering.
+        clearSavedProgress();
+        storageAvailable = false;
+    }
+}
+
+function resumeRound() {
+    if (!pendingRound) return;
+    // Recheck freshness if the choice screen has been left open for a day.
+    const restored = readSavedProgress();
+    if (!restored) {
+        resetQuiz();
+        return;
+    }
+    clearSharing();
+    clearReview();
+    questions = restored.questions;
+    remainingQuestions = restored.remainingQuestions;
+    selectedAnswers = restored.answers;
+    currentQuestionIndex = restored.index;
+    score = selectedAnswers.reduce((total, answer, index) =>
+        total + Number(answer === questions[index].correctIndex), 0);
+    playerName = "";
+    playerNameInput.value = "";
+    pendingRound = null;
+    showScreen(quizScreen);
+    loadQuestion();
+    if (selectedAnswers.length > currentQuestionIndex) renderAnswerFeedback();
+    saveProgress();
+}
+
 function clearReview() {
     selectedAnswers = [];
     answerReview.open = false;
@@ -153,6 +265,7 @@ function renderReview() {
 }
 
 function showScreen(screenToShow) {
+    resumeScreen.classList.add("hidden");
     startScreen.classList.add("hidden");
     quizScreen.classList.add("hidden");
     resultsScreen.classList.add("hidden");
@@ -187,13 +300,22 @@ function handleAnswerClick(event) {
     const clickedButton = event.currentTarget;
     const selectedIndex = Number(clickedButton.dataset.index);
     selectedAnswers[currentQuestionIndex] = selectedIndex;
+    if (selectedIndex === questions[currentQuestionIndex].correctIndex) score++;
+    renderAnswerFeedback();
+    saveProgress();
+}
+
+// Rendering a recorded answer never changes the score or answer history.
+function renderAnswerFeedback() {
+    answered = true;
+    const selectedIndex = selectedAnswers[currentQuestionIndex];
+    const clickedButton = answerButtons[selectedIndex];
     const currentQuestion = questions[currentQuestionIndex];
     const correctIndex = currentQuestion.correctIndex;
     answerButtons.forEach((button) => { button.disabled = true; });
     answerButtons[correctIndex].classList.add("correct");
     answerButtons[correctIndex].textContent += " — Correct answer";
     if (selectedIndex === correctIndex) {
-        score++;
         answerFeedback.textContent = `Correct! ${currentQuestion.explanation}`;
     } else {
         clickedButton.classList.add("wrong");
@@ -208,6 +330,7 @@ function handleAnswerClick(event) {
 }
 
 function showResults() {
+    clearSavedProgress();
     clearSharing();
     renderReview();
     const percentage = Math.round((score / roundSize) * 100);
@@ -229,6 +352,7 @@ function showResults() {
 }
 
 function resetQuiz() {
+    clearSavedProgress();
     clearSharing();
     clearReview();
     finalMessage.textContent = "";
@@ -261,8 +385,10 @@ startForm.addEventListener("submit", (event) => {
     questions = drawRound();
     currentQuestionIndex = 0;
     score = 0;
+    pendingRound = null;
     showScreen(quizScreen);
     loadQuestion();
+    saveProgress();
 });
 answerButtons.forEach((button, index) => {
     button.dataset.index = index;
@@ -271,9 +397,20 @@ answerButtons.forEach((button, index) => {
 nextQuestionBtn.addEventListener("click", () => {
     if (!answered) return;
     currentQuestionIndex++;
-    if (currentQuestionIndex < roundSize) loadQuestion();
-    else showResults();
+    if (currentQuestionIndex < roundSize) {
+        loadQuestion();
+        saveProgress();
+    } else showResults();
 });
 playAgainBtn.addEventListener("click", resetQuiz);
 shareResultBtn.addEventListener("click", shareResult);
 copyResultBtn.addEventListener("click", copyResult);
+resumeBtn.addEventListener("click", resumeRound);
+discardBtn.addEventListener("click", resetQuiz);
+
+pendingRound = readSavedProgress();
+if (pendingRound) {
+    resumeSummary.textContent = `${pendingRound.answers.length} of ${roundSize} questions answered. Pick up where you left off.`;
+    showScreen(resumeScreen);
+    resumeHeading.focus();
+}

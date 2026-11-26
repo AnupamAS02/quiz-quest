@@ -276,7 +276,8 @@ button:active {
     border-top: 1px solid var(--color-secondary);
 }
 
-.share-actions {
+.share-actions,
+.resume-actions {
     display: flex;
     flex-wrap: wrap;
     justify-content: center;
