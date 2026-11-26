@@ -40,7 +40,7 @@ All 20 questions in `questions.js` were checked against official Brainer pages o
 - When the pool is exhausted, it is reshuffled without the immediately previous round, so consecutive rounds stay fresh.
 - Play Again resets the player, score and progress but preserves the remaining pool.
 - Correct/wrong labels and an explanation supplement color feedback. Next Question (or See Results) lets players read at their own pace.
-- There is no canonical URL: a production address has not been supplied.
+- The founder supplied https://anupamas02.github.io/quiz-quest/ as the live URL. It is used in the README, canonical link and Open Graph URL. Asset links remain relative to preserve the GitHub Pages `/quiz-quest/` subpath. The live site may still show an earlier quiz until the founder merges and deploys.
 
 ## Local checks
 

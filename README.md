@@ -2,7 +2,7 @@
 
 A multiple-choice quiz app built with vanilla HTML, CSS, and JavaScript. No frameworks, no libraries — just the fundamentals.
 
-🔗 **[Live Demo](https://YOUR-USERNAME.github.io/quiz-quest/)** *(coming after Step 5c)*
+🔗 **[Live Demo](https://anupamas02.github.io/quiz-quest/)**
 
 ## Screenshots
 
@@ -53,4 +53,4 @@ Run the dependency-free regression checks:
 node tests/quiz.test.js
 ```
 
-For browser testing, run `python3 -m http.server 8000` and open `http://localhost:8000`. Use Tab, Enter or Space to play with the keyboard. The live-demo link above remains a placeholder; no production URL has been verified.
+For browser testing, run `python3 -m http.server 8000` and open `http://localhost:8000`. Use Tab, Enter or Space to play with the keyboard. The live-demo URL is the founder’s GitHub Pages site. Changes on `brainer/work` remain pending review, merge and founder deployment; the live site may still show an earlier quiz.
