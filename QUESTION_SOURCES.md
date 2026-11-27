@@ -33,6 +33,8 @@ All 20 questions in `questions.js` were checked against official Brainer pages o
 | heartbeat | CEO check-ins are saved as Heartbeat | CEO guide |
 | outcome-request | Describe the desired result rather than every step | CEO guide |
 
+The crawlable `sample-question.html` entry page uses the `engineer-role` question and its official AI team source.
+
 ## Round and feedback behavior
 
 - A round contains five distinct questions.

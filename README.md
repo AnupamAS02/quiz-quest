@@ -18,6 +18,7 @@ A multiple-choice quiz app built with vanilla HTML, CSS, and JavaScript. No fram
 ## Features
 
 - Five-question rounds drawn from 20 Brainer multiple-choice questions
+- Searchable sample question with answer feedback, an official source and a link to the full quiz
 - Fresh questions on replay, using the remaining bank before reshuffling
 - Live score tracking and progress bar
 - Correct/wrong labels, color feedback and concise answer explanations
@@ -58,6 +59,7 @@ Run the dependency-free regression checks:
 node tests/quiz.test.js
 node tests/sharing.test.js
 node tests/preview.test.js
+node tests/sample-question.test.js
 node tests/progress.test.js
 node tests/score-image.test.js
 ```
