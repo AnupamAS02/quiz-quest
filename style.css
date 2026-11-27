@@ -179,6 +179,35 @@ button:active {
     background-color: #bfdbfe;
 }
 
+.answer-btn:disabled {
+    cursor: default;
+    transform: none;
+}
+
+.answer-btn.correct {
+    background-color: var(--color-correct);
+}
+
+.answer-btn.wrong {
+    background-color: var(--color-wrong);
+}
+
+.answer-feedback:not(:empty) {
+    margin-top: 1.5rem;
+    color: var(--color-text);
+    text-align: left;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .screen {
+        animation: none;
+    }
+
+    *, *::before, *::after {
+        transition: none !important;
+    }
+}
+
 /* ============================================
    8. Utilities
    ============================================ */
@@ -239,4 +268,136 @@ button:active {
     .screen h2 {
         font-size: 1.4rem;
     }
+}
+/* Keep replay primary and sharing easy to reach on small screens. */
+.result-sharing {
+    margin-top: 2rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--color-secondary);
+}
+
+.share-actions,
+.resume-actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.75rem;
+}
+
+.secondary-btn {
+    background-color: var(--color-bg);
+    color: var(--color-primary);
+    border: 2px solid var(--color-primary);
+}
+
+.secondary-btn:hover:not(:disabled) {
+    background-color: #dbeafe;
+}
+
+.secondary-btn:disabled {
+    opacity: 0.65;
+    cursor: wait;
+    transform: none;
+}
+
+#share-status:not(:empty),
+#save-image-status:not(:empty) {
+    margin: 1rem 0;
+}
+
+#manual-copy label {
+    display: block;
+    margin-bottom: 0.5rem;
+}
+
+#share-text {
+    width: 100%;
+    padding: 0.75rem;
+    font: inherit;
+    color: var(--color-text);
+    background-color: var(--color-bg);
+    border: 2px solid var(--color-secondary);
+    border-radius: var(--radius);
+    resize: vertical;
+}
+
+#share-text:focus-visible {
+    outline: 3px solid var(--color-accent);
+    outline-offset: 3px;
+}
+
+/* Native disclosure keeps answer review optional and keyboard accessible. */
+.answer-review {
+    margin-top: 1.5rem;
+    text-align: left;
+    border: 1px solid var(--color-secondary);
+    border-radius: var(--radius);
+    overflow-wrap: anywhere;
+}
+
+.answer-review summary {
+    padding: 0.85rem 1rem;
+    min-height: 44px;
+    color: var(--color-primary);
+    font-weight: 600;
+    cursor: pointer;
+    border-radius: var(--radius);
+}
+
+.answer-review summary:hover {
+    background-color: var(--color-bg);
+}
+
+.answer-review summary:focus-visible,
+.review-item a:focus-visible {
+    outline: 3px solid var(--color-accent);
+    outline-offset: -3px;
+}
+
+.answer-review > p {
+    margin: 0.5rem 1rem 1rem;
+}
+
+.review-list {
+    list-style: none;
+    padding: 0 1rem 1rem;
+}
+
+.review-item {
+    padding: 1rem 0;
+    border-top: 1px solid var(--color-secondary);
+}
+
+.review-item h3 {
+    font-size: 1.1rem;
+    line-height: 1.5;
+    margin-bottom: 0.75rem;
+}
+
+.review-item p {
+    margin-bottom: 0.75rem;
+    color: var(--color-text);
+}
+
+.review-item .review-outcome {
+    display: inline-block;
+    padding: 0.15rem 0.6rem;
+    border-radius: var(--radius);
+    font-weight: 600;
+}
+
+.review-correct {
+    background-color: var(--color-correct);
+}
+
+.review-incorrect {
+    background-color: var(--color-wrong);
+}
+
+.review-item a {
+    display: inline-block;
+    padding: 0.5rem 0;
+    min-height: 44px;
+    color: var(--color-primary);
+    text-underline-offset: 3px;
 }

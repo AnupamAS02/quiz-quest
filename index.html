@@ -4,9 +4,27 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Quiz Quest | HTML, CSS &amp; JavaScript Quiz for Beginners</title>
+    <title>Quiz Quest | Five-Question Brainer Quiz</title>
     <meta name="description"
-        content="Test your HTML, CSS and JavaScript basics with Quiz Quest. Answer five multiple-choice questions, see your score and play again." />
+        content="Test your Brainer knowledge with five multiple-choice questions about its AI team, tasks and founder decisions. Read answer explanations and play a fresh round." />
+    <link rel="canonical" href="https://anupamas02.github.io/quiz-quest/" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Quiz Quest" />
+    <meta property="og:title" content="Quiz Quest | Five-Question Brainer Quiz" />
+    <meta property="og:description"
+        content="Test your Brainer knowledge with five multiple-choice questions about its AI team, tasks and founder decisions. Read answer explanations and play a fresh round." />
+    <meta property="og:url" content="https://anupamas02.github.io/quiz-quest/" />
+    <meta property="og:image" content="https://anupamas02.github.io/quiz-quest/assets/quiz-preview.png" />
+    <meta property="og:image:type" content="image/png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="Quiz Quest. How well do you know Brainer? Five multiple-choice questions." />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Quiz Quest | Five-Question Brainer Quiz" />
+    <meta name="twitter:description"
+        content="Test your Brainer knowledge with five multiple-choice questions about its AI team, tasks and founder decisions. Read answer explanations and play a fresh round." />
+    <meta name="twitter:image" content="https://anupamas02.github.io/quiz-quest/assets/quiz-preview.png" />
+    <meta name="twitter:image:alt" content="Quiz Quest. How well do you know Brainer? Five multiple-choice questions." />
     <link rel="stylesheet" href="style.css" />
 </head>
 
@@ -18,14 +36,25 @@
     <main>
         <!-- Screen 1: Start -->
         <section id="start-screen" class="screen">
-            <h2>Test your web basics</h2>
-            <p>Answer five multiple-choice questions about HTML, CSS and JavaScript. New to web development? Start here and see how many you can get right.</p>
+            <h2>How well do you know Brainer?</h2>
+            <p>Answer five multiple-choice questions about Brainer’s AI team, tasks and founder decisions. New to Brainer? Read the answer explanations as you go.</p>
+            <p>Each round draws from 20 questions. Play again for a fresh challenge.</p>
             <form id="start-form">
-                <label for="player-name">Enter your name:</label>
-                <input type="text" id="player-name" name="playerName" placeholder="e.g. Anupam Singh" required
-                    minlength="2" maxlength="20" />
+                <label for="player-name">Nickname (optional, 2–20 characters):</label>
+                <input type="text" id="player-name" name="playerName" placeholder="e.g. Alex"
+                    maxlength="20" />
                 <button type="submit">Start Quiz</button>
             </form>
+        </section>
+
+        <section id="resume-screen" class="screen hidden" aria-labelledby="resume-heading">
+            <h2 id="resume-heading" tabindex="-1">Finish your round?</h2>
+            <p id="resume-summary"></p>
+            <p>Your questions and answers are saved in this tab for up to a day. Your nickname isn’t saved.</p>
+            <div class="resume-actions">
+                <button id="resume-btn" type="button">Resume Quiz</button>
+                <button id="discard-btn" class="secondary-btn" type="button">Discard Round</button>
+            </div>
         </section>
 
         <!-- Screen 2: Quiz (hidden for now) -->
@@ -35,25 +64,47 @@
                 <span id="score-display">Score: 0</span>
 
                 <!-- NEW: progress bar -->
-                <div class="progress-bar">
+                <div id="quiz-progress" class="progress-bar" role="progressbar" aria-label="Questions answered"
+                    aria-valuemin="0" aria-valuemax="5" aria-valuenow="0">
                     <div id="progress-fill" class="progress-fill"></div>
                 </div>
             </div>
-            <h2 id="question-text">Question goes here</h2>
+            <h2 id="question-text" tabindex="-1">Question goes here</h2>
             <div id="answer-buttons">
                 <button class="answer-btn">Answer 1</button>
                 <button class="answer-btn">Answer 2</button>
                 <button class="answer-btn">Answer 3</button>
                 <button class="answer-btn">Answer 4</button>
             </div>
+            <p id="answer-feedback" class="answer-feedback" role="status" aria-live="polite"></p>
+            <button id="next-question-btn" class="hidden" type="button">Next Question</button>
         </section>
 
         <!-- Screen 3: Results (hidden for now) -->
         <section id="results-screen" class="screen hidden">
-            <h2>Quiz Complete!</h2>
-            <p id="final-message">Great job, player!</p>
+            <h2 id="results-heading" tabindex="-1">Quiz Complete!</h2>
+            <p id="final-message">Thanks for playing!</p>
             <p id="final-score">You scored 0 out of 5</p>
-            <button id="play-again-btn">Play Again</button>
+            <button id="play-again-btn" type="button">Play Again</button>
+            <details id="answer-review" class="answer-review">
+                <summary>Review Answers</summary>
+                <p>Look back at your five answers and see why each correct answer fits.</p>
+                <ol id="review-list" class="review-list"></ol>
+            </details>
+            <div class="result-sharing" aria-label="Share your result">
+                <p id="share-note">Share your score and invite a friend to try a Brainer round. Questions may differ. Your name stays here.</p>
+                <div class="share-actions">
+                    <button id="share-result-btn" class="secondary-btn" type="button" aria-describedby="share-note">Share Score</button>
+                    <button id="copy-result-btn" class="secondary-btn" type="button">Copy Result</button>
+                    <button id="save-image-btn" class="secondary-btn" type="button" aria-describedby="share-note">Save Score Image</button>
+                </div>
+                <p id="save-image-status" role="status" aria-live="polite" aria-atomic="true"></p>
+                <p id="share-status" role="status" aria-live="polite" aria-atomic="true"></p>
+                <div id="manual-copy" class="hidden">
+                    <label for="share-text">Copy this result and link:</label>
+                    <textarea id="share-text" readonly rows="5" spellcheck="false"></textarea>
+                </div>
+            </div>
         </section>
     </main>
 
@@ -61,6 +112,7 @@
         <p>Built with HTML, CSS &amp; JavaScript</p>
     </footer>
 
+    <script src="questions.js"></script>
     <script src="script.js"></script>
 </body>
 

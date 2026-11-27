@@ -1,183 +1,505 @@
-const questions = [
-    {
-        question: "Which HTML tag is used for the largest heading?",
-        choices: ["<h6>", "<heading>", "<h1>", "<head>"],
-        correctIndex: 2,
-    },
-    {
-        question: "What does CSS stand for?",
-        choices: [
-            "Computer Style Sheets",
-            "Cascading Style Sheets",
-            "Creative Style System",
-            "Colorful Style Syntax",
-        ],
-        correctIndex: 1,
-    },
-    {
-        question: "Which keyword declares a variable that cannot be reassigned?",
-        choices: ["var", "let", "const", "static"],
-        correctIndex: 2,
-    },
-    {
-        question: "What will `typeof []` return in JavaScript?",
-        choices: ["'array'", "'object'", "'list'", "'undefined'"],
-        correctIndex: 1,
-    },
-    {
-        question: "Which CSS property creates space INSIDE an element's border?",
-        choices: ["margin", "padding", "spacing", "gap"],
-        correctIndex: 1,
-    },
-];
-// ============================================
-// DOM Elements
-// ============================================
+const roundSize = 5;
+let remainingQuestions = [];
+let questions = [];
+
+// Draw without replacement. Use the unseen bank before starting a new cycle.
+function shuffle(items) {
+    const shuffled = [...items];
+    for (let index = shuffled.length - 1; index > 0; index--) {
+        const other = Math.floor(Math.random() * (index + 1));
+        [shuffled[index], shuffled[other]] = [shuffled[other], shuffled[index]];
+    }
+    return shuffled;
+}
+
+function drawRound() {
+    const round = [];
+    while (round.length < roundSize) {
+        if (remainingQuestions.length === 0) {
+            remainingQuestions = shuffle(questionBank.filter((question) =>
+                !round.includes(question) && !questions.includes(question)));
+        }
+        round.push(remainingQuestions.pop());
+    }
+    return round;
+}
+
+const resumeScreen = document.getElementById("resume-screen");
+const resumeHeading = document.getElementById("resume-heading");
+const resumeSummary = document.getElementById("resume-summary");
+const resumeBtn = document.getElementById("resume-btn");
+const discardBtn = document.getElementById("discard-btn");
 const startScreen = document.getElementById("start-screen");
 const quizScreen = document.getElementById("quiz-screen");
 const resultsScreen = document.getElementById("results-screen");
-
 const startForm = document.getElementById("start-form");
 const playerNameInput = document.getElementById("player-name");
-
 const questionCounter = document.getElementById("question-counter");
 const scoreDisplay = document.getElementById("score-display");
 const questionText = document.getElementById("question-text");
 const progressFill = document.getElementById("progress-fill");
+const progressBar = document.getElementById("quiz-progress");
 const answerButtons = document.querySelectorAll(".answer-btn");
-
+const answerFeedback = document.getElementById("answer-feedback");
+const nextQuestionBtn = document.getElementById("next-question-btn");
 const finalMessage = document.getElementById("final-message");
 const finalScore = document.getElementById("final-score");
+const resultsHeading = document.getElementById("results-heading");
 const playAgainBtn = document.getElementById("play-again-btn");
+const answerReview = document.getElementById("answer-review");
+const reviewList = document.getElementById("review-list");
+const shareResultBtn = document.getElementById("share-result-btn");
+const copyResultBtn = document.getElementById("copy-result-btn");
+const shareStatus = document.getElementById("share-status");
+const manualCopy = document.getElementById("manual-copy");
+const shareText = document.getElementById("share-text");
+const saveImageBtn = document.getElementById("save-image-btn");
+const saveImageStatus = document.getElementById("save-image-status");
+const quizUrl = "https://anupamas02.github.io/quiz-quest/";
+let sharingVersion = 0;
 
-// ============================================
-// State (the data that changes as the quiz runs)
-// ============================================
+// Build only from the score: never include the player's name or current URL.
+function resultText() {
+    return `I scored ${score} out of ${roundSize} on the Brainer quiz at Quiz Quest. How many can you get right? Try five questions — your round may differ.`;
+}
+
+function clearSharing() {
+    sharingVersion++;
+    shareStatus.textContent = "";
+    shareText.value = "";
+    manualCopy.classList.add("hidden");
+    shareResultBtn.disabled = false;
+    copyResultBtn.disabled = false;
+    saveImageBtn.disabled = false;
+    saveImageStatus.textContent = "";
+}
+
+// Draw from an explicit score and fixed copy, never from results DOM or identity.
+function scoreImage(roundScore) {
+    const canvas = document.createElement("canvas");
+    canvas.width = 1200;
+    canvas.height = 900;
+    const context = canvas.getContext("2d");
+    if (!context) throw new Error("Image drawing unavailable");
+    context.fillStyle = "#f8fafc";
+    context.fillRect(0, 0, 1200, 900);
+    context.fillStyle = "#ffffff";
+    context.fillRect(48, 48, 1104, 804);
+    context.fillStyle = "#2563eb";
+    context.fillRect(48, 48, 1104, 12);
+    context.textAlign = "center";
+    context.fillStyle = "#2563eb";
+    context.font = "bold 48px sans-serif";
+    context.fillText("Quiz Quest", 600, 150);
+    context.fillStyle = "#172554";
+    context.font = "36px sans-serif";
+    context.fillText("My Brainer quiz score", 600, 230);
+    context.font = "bold 160px sans-serif";
+    context.fillText(`${roundScore} / ${roundSize}`, 600, 420);
+    context.fillStyle = "#f59e0b";
+    context.fillRect(520, 460, 160, 8);
+    context.fillStyle = "#172554";
+    context.font = "bold 46px sans-serif";
+    context.fillText("How many can you get right?", 600, 555);
+    context.font = "34px sans-serif";
+    context.fillText("Answer five multiple-choice questions about Brainer.", 600, 625);
+    context.font = "28px sans-serif";
+    context.fillText("Your round may differ.", 600, 680);
+    context.fillStyle = "#2563eb";
+    context.font = "bold 32px sans-serif";
+    context.fillText(quizUrl, 600, 780);
+    return canvas;
+}
+
+async function saveScoreImage() {
+    if (saveImageBtn.disabled) return;
+    const version = sharingVersion;
+    const roundScore = score;
+    let link;
+    let objectUrl;
+    saveImageBtn.disabled = true;
+    saveImageStatus.textContent = "Preparing your score image…";
+    try {
+        link = document.createElement("a");
+        if (!("download" in link) || typeof URL.createObjectURL !== "function" ||
+            typeof URL.revokeObjectURL !== "function") throw new Error("Download unavailable");
+        const canvas = scoreImage(roundScore);
+        const blob = await new Promise((resolve, reject) => {
+            const timer = setTimeout(() => reject(new Error("Image preparation timed out")), 10000);
+            try {
+                canvas.toBlob((image) => {
+                    clearTimeout(timer);
+                    if (image) resolve(image);
+                    else reject(new Error("Image preparation failed"));
+                }, "image/png");
+            } catch (error) {
+                clearTimeout(timer);
+                reject(error);
+            }
+        });
+        if (version !== sharingVersion) return;
+        objectUrl = URL.createObjectURL(blob);
+        link.href = objectUrl;
+        link.download = `quiz-quest-score-${roundScore}-of-${roundSize}.png`;
+        link.hidden = true;
+        document.body.append(link);
+        link.click();
+        // Browsers don't report whether a user accepts or blocks a download.
+        saveImageStatus.textContent = "Image download requested. If it didn’t save, use Copy Result to send your score and link.";
+    } catch {
+        if (version === sharingVersion) {
+            saveImageStatus.textContent = "Saving an image isn’t available here. Use Copy Result to send your score and link. Your result is still here.";
+        }
+    } finally {
+        if (link) link.remove();
+        // Allow the browser time to consume the blob before releasing it.
+        if (objectUrl) setTimeout(() => URL.revokeObjectURL(objectUrl), 60000);
+        if (version === sharingVersion) saveImageBtn.disabled = false;
+    }
+}
+
+async function copyResult() {
+    const version = sharingVersion;
+    const text = `${resultText()}\n${quizUrl}`;
+    copyResultBtn.disabled = true;
+    shareStatus.textContent = "";
+    try {
+        await navigator.clipboard.writeText(text);
+        if (version !== sharingVersion) return;
+        manualCopy.classList.add("hidden");
+        shareStatus.textContent = "Result and link copied. Ready to send!";
+    } catch {
+        if (version !== sharingVersion) return;
+        shareText.value = text;
+        manualCopy.classList.remove("hidden");
+        shareStatus.textContent = "Automatic copying isn’t available. Copy the selected text below to share your result.";
+        shareText.focus();
+        shareText.select();
+    } finally {
+        if (version === sharingVersion) copyResultBtn.disabled = false;
+    }
+}
+
+async function shareResult() {
+    if (typeof navigator.share !== "function") {
+        await copyResult();
+        return;
+    }
+    const version = sharingVersion;
+    shareStatus.textContent = "";
+    shareResultBtn.disabled = true;
+    try {
+        await navigator.share({ title: "Quiz Quest | Brainer Quiz", text: resultText(), url: quizUrl });
+        if (version === sharingVersion) shareStatus.textContent = "Sharing complete. Ready for another round?";
+    } catch (error) {
+        if (version !== sharingVersion) return;
+        // Cancellation is not a failure and must not silently copy anything.
+        shareStatus.textContent = error && error.name === "AbortError"
+            ? "Sharing cancelled. Your result is still here."
+            : "Device sharing isn’t available. Use Copy Result to share your score and link.";
+    } finally {
+        if (version === sharingVersion) shareResultBtn.disabled = false;
+    }
+}
+
 let currentQuestionIndex = 0;
 let score = 0;
 let playerName = "";
-// ============================================
-// Helper: switch which screen is visible
-// ============================================
+let answered = false;
+let selectedAnswers = [];
+
+// sessionStorage is tab-scoped. Store only round data, never player identity.
+const progressKey = "quiz-quest:unfinished-round";
+const progressVersion = 1;
+const bankVersion = JSON.stringify(questionBank);
+const progressMaxAge = 24 * 60 * 60 * 1000;
+let storageAvailable = true;
+let pendingRound = null;
+
+function clearSavedProgress() {
+    pendingRound = null;
+    try {
+        sessionStorage.removeItem(progressKey);
+    } catch {
+        storageAvailable = false;
+    }
+}
+
+function validateProgress(data) {
+    if (!data || typeof data !== "object" || Array.isArray(data)) return null;
+    const fields = ["version", "bank", "savedAt", "questionIds", "remainingIds", "answers", "index"];
+    if (Object.keys(data).length !== fields.length || !fields.every((key) => Object.hasOwn(data, key))) return null;
+    if (data.version !== progressVersion || data.bank !== bankVersion) return null;
+    const age = Date.now() - data.savedAt;
+    if (!Number.isSafeInteger(data.savedAt) || age < 0 || age > progressMaxAge) return null;
+    if (!Number.isInteger(data.index) || data.index < 0 || data.index >= roundSize) return null;
+    if (!Array.isArray(data.questionIds) || data.questionIds.length !== roundSize ||
+        !Array.isArray(data.remainingIds) || !Array.isArray(data.answers)) return null;
+    const byId = new Map(questionBank.map((question) => [question.id, question]));
+    const allIds = [...data.questionIds, ...data.remainingIds];
+    if (new Set(allIds).size !== allIds.length || !allIds.every((id) => byId.has(id))) return null;
+    const restoredQuestions = data.questionIds.map((id) => byId.get(id));
+    if (data.answers.length !== data.index && data.answers.length !== data.index + 1) return null;
+    if (!data.answers.every((answer, index) => Number.isInteger(answer) &&
+        answer >= 0 && answer < restoredQuestions[index].choices.length)) return null;
+    return {
+        questions: restoredQuestions,
+        remainingQuestions: data.remainingIds.map((id) => byId.get(id)),
+        answers: [...data.answers],
+        index: data.index,
+    };
+}
+
+function readSavedProgress() {
+    let raw;
+    try {
+        raw = sessionStorage.getItem(progressKey);
+    } catch {
+        clearSavedProgress();
+        storageAvailable = false;
+        return null;
+    }
+    if (raw === null) return null;
+    try {
+        const restored = validateProgress(JSON.parse(raw));
+        if (!restored) clearSavedProgress();
+        return restored;
+    } catch {
+        // Bad JSON is not a storage failure: the next round can still save.
+        clearSavedProgress();
+        return null;
+    }
+}
+
+function saveProgress() {
+    if (!storageAvailable) return;
+    try {
+        sessionStorage.setItem(progressKey, JSON.stringify({
+            version: progressVersion,
+            bank: bankVersion,
+            savedAt: Date.now(),
+            questionIds: questions.map((question) => question.id),
+            remainingIds: remainingQuestions.map((question) => question.id),
+            answers: selectedAnswers,
+            index: currentQuestionIndex,
+        }));
+    } catch {
+        // Quota or privacy restrictions must never interrupt answering.
+        clearSavedProgress();
+        storageAvailable = false;
+    }
+}
+
+function resumeRound() {
+    if (!pendingRound) return;
+    // Recheck freshness if the choice screen has been left open for a day.
+    const restored = readSavedProgress();
+    if (!restored) {
+        resetQuiz();
+        return;
+    }
+    clearSharing();
+    clearReview();
+    questions = restored.questions;
+    remainingQuestions = restored.remainingQuestions;
+    selectedAnswers = restored.answers;
+    currentQuestionIndex = restored.index;
+    score = selectedAnswers.reduce((total, answer, index) =>
+        total + Number(answer === questions[index].correctIndex), 0);
+    playerName = "";
+    playerNameInput.value = "";
+    pendingRound = null;
+    showScreen(quizScreen);
+    loadQuestion();
+    if (selectedAnswers.length > currentQuestionIndex) renderAnswerFeedback();
+    saveProgress();
+}
+
+function clearReview() {
+    selectedAnswers = [];
+    answerReview.open = false;
+    reviewList.replaceChildren();
+}
+
+function renderReview() {
+    answerReview.open = false;
+    reviewList.replaceChildren();
+    questions.forEach((question, index) => {
+        const selectedIndex = selectedAnswers[index];
+        const isCorrect = selectedIndex === question.correctIndex;
+        const item = document.createElement("li");
+        item.classList.add("review-item");
+
+        const heading = document.createElement("h3");
+        heading.textContent = `Question ${index + 1}: ${question.question}`;
+        const outcome = document.createElement("p");
+        outcome.classList.add("review-outcome", isCorrect ? "review-correct" : "review-incorrect");
+        outcome.textContent = isCorrect ? "Correct" : "Not quite";
+        const selected = document.createElement("p");
+        selected.textContent = `Your answer: ${question.choices[selectedIndex]}`;
+        const correct = document.createElement("p");
+        correct.textContent = `Correct answer: ${question.choices[question.correctIndex]}`;
+        const explanation = document.createElement("p");
+        explanation.textContent = question.explanation;
+        const source = document.createElement("a");
+        source.href = question.source;
+        source.target = "_blank";
+        source.rel = "noopener noreferrer";
+        source.textContent = `Official source: ${question.source === teamSource ? "Brainer’s AI team" : "Brainer’s CEO guide"} (opens in a new tab)`;
+
+        item.append(heading, outcome, selected, correct, explanation, source);
+        reviewList.append(item);
+    });
+}
+
 function showScreen(screenToShow) {
+    resumeScreen.classList.add("hidden");
     startScreen.classList.add("hidden");
     quizScreen.classList.add("hidden");
     resultsScreen.classList.add("hidden");
-
     screenToShow.classList.remove("hidden");
 }
 
-// ============================================
-// Render the current question and its choices
-// ============================================
+function updateProgress(completed) {
+    progressFill.style.width = `${(completed / roundSize) * 100}%`;
+    progressBar.setAttribute("aria-valuenow", completed);
+}
+
 function loadQuestion() {
     const currentQuestion = questions[currentQuestionIndex];
-
+    answered = false;
     questionText.textContent = currentQuestion.question;
-    questionCounter.textContent = `Question ${currentQuestionIndex + 1} of ${questions.length}`;
+    questionCounter.textContent = `Question ${currentQuestionIndex + 1} of ${roundSize}`;
     scoreDisplay.textContent = `Score: ${score}`;
-
-    // Update progress bar
-    const progressPercent = ((currentQuestionIndex) / questions.length) * 100;
-    progressFill.style.width = `${progressPercent}%`;
-
+    updateProgress(currentQuestionIndex);
+    answerFeedback.textContent = "";
+    nextQuestionBtn.classList.add("hidden");
     answerButtons.forEach((button, index) => {
         button.textContent = currentQuestion.choices[index];
         button.disabled = false;
-        button.style.backgroundColor = "";
+        button.classList.remove("correct", "wrong");
     });
+    questionText.focus();
 }
 
-// ============================================
-// Handle the user clicking an answer button
-// ============================================
 function handleAnswerClick(event) {
-    const clickedButton = event.target;
+    if (answered) return;
+    answered = true;
+    const clickedButton = event.currentTarget;
     const selectedIndex = Number(clickedButton.dataset.index);
-    const correctIndex = questions[currentQuestionIndex].correctIndex;
-
-    // Disable all buttons so user can't click twice
-    answerButtons.forEach((button) => {
-        button.disabled = true;
-    });
-
-    // Show correct/wrong colors
-    if (selectedIndex === correctIndex) {
-        clickedButton.style.backgroundColor = "var(--color-correct)";
-        score++;
-    } else {
-        clickedButton.style.backgroundColor = "var(--color-wrong)";
-        // Also highlight the correct answer in green
-        answerButtons[correctIndex].style.backgroundColor = "var(--color-correct)";
-    }
-
-    scoreDisplay.textContent = `Score: ${score}`;
-
-    // Wait 1.2 seconds, then move to next question (or finish)
-    setTimeout(() => {
-        currentQuestionIndex++;
-        if (currentQuestionIndex < questions.length) {
-            loadQuestion();
-        } else {
-            showResults();
-        }
-    }, 1200);
+    selectedAnswers[currentQuestionIndex] = selectedIndex;
+    if (selectedIndex === questions[currentQuestionIndex].correctIndex) score++;
+    renderAnswerFeedback();
+    saveProgress();
 }
 
-// ============================================
-// Show the results screen
-// ============================================
+// Rendering a recorded answer never changes the score or answer history.
+function renderAnswerFeedback() {
+    answered = true;
+    const selectedIndex = selectedAnswers[currentQuestionIndex];
+    const clickedButton = answerButtons[selectedIndex];
+    const currentQuestion = questions[currentQuestionIndex];
+    const correctIndex = currentQuestion.correctIndex;
+    answerButtons.forEach((button) => { button.disabled = true; });
+    answerButtons[correctIndex].classList.add("correct");
+    answerButtons[correctIndex].textContent += " — Correct answer";
+    if (selectedIndex === correctIndex) {
+        answerFeedback.textContent = `Correct! ${currentQuestion.explanation}`;
+    } else {
+        clickedButton.classList.add("wrong");
+        clickedButton.textContent += " — Your answer";
+        answerFeedback.textContent = `Not quite. ${currentQuestion.explanation}`;
+    }
+    scoreDisplay.textContent = `Score: ${score}`;
+    updateProgress(currentQuestionIndex + 1);
+    nextQuestionBtn.textContent = currentQuestionIndex === roundSize - 1 ? "See Results" : "Next Question";
+    nextQuestionBtn.classList.remove("hidden");
+    nextQuestionBtn.focus();
+}
+
 function showResults() {
-    progressFill.style.width = "100%";  // NEW
-
-    const total = questions.length;
-    const percentage = Math.round((score / total) * 100);
-
+    clearSavedProgress();
+    clearSharing();
+    renderReview();
+    const percentage = Math.round((score / roundSize) * 100);
+    const personalGreeting = playerName ? `, ${playerName}` : "";
     let message;
     if (percentage === 100) {
-        message = `Perfect score, ${playerName}! 🏆`;
+        message = `Perfect score${personalGreeting}! 🏆`;
     } else if (percentage >= 80) {
-        message = `Excellent work, ${playerName}!`;
+        message = `Excellent work${personalGreeting}!`;
     } else if (percentage >= 60) {
-        message = `Nice job, ${playerName}!`;
-    } else if (percentage >= 40) {
-        message = `Not bad, ${playerName}. Keep practicing!`;
+        message = `Nice job${personalGreeting}!`;
     } else {
-        message = `Tough one, ${playerName}. Try again!`;
+        message = `Thanks for playing${personalGreeting}! Ready for another round?`;
     }
-
     finalMessage.textContent = message;
-    finalScore.textContent = `You scored ${score} out of ${total} (${percentage}%)`;
-
+    finalScore.textContent = `You scored ${score} out of ${roundSize} (${percentage}%)`;
     showScreen(resultsScreen);
+    resultsHeading.focus();
 }
 
-// ============================================
-// Reset everything and go back to the start
-// ============================================
 function resetQuiz() {
+    clearSavedProgress();
+    clearSharing();
+    clearReview();
+    finalMessage.textContent = "";
+    finalScore.textContent = "";
     currentQuestionIndex = 0;
     score = 0;
     playerName = "";
+    answered = false;
     playerNameInput.value = "";
-    progressFill.style.width = "0%";  // NEW
+    playerNameInput.setCustomValidity("");
+    answerFeedback.textContent = "";
+    nextQuestionBtn.classList.add("hidden");
+    updateProgress(0);
     showScreen(startScreen);
+    playerNameInput.focus();
 }
 
-// ============================================
-// Event listeners (wire everything up)
-// ============================================
+playerNameInput.addEventListener("input", () => playerNameInput.setCustomValidity(""));
 startForm.addEventListener("submit", (event) => {
     event.preventDefault();
-    playerName = playerNameInput.value.trim();
+    const name = playerNameInput.value.trim();
+    if (name && (name.length < 2 || name.length > 20)) {
+        playerNameInput.setCustomValidity("Use 2–20 characters for your nickname, or leave it blank.");
+        playerNameInput.reportValidity();
+        return;
+    }
+    playerNameInput.setCustomValidity("");
+    clearReview();
+    playerName = name;
+    questions = drawRound();
+    currentQuestionIndex = 0;
+    score = 0;
+    pendingRound = null;
     showScreen(quizScreen);
     loadQuestion();
+    saveProgress();
 });
-
 answerButtons.forEach((button, index) => {
     button.dataset.index = index;
     button.addEventListener("click", handleAnswerClick);
 });
-
+nextQuestionBtn.addEventListener("click", () => {
+    if (!answered) return;
+    currentQuestionIndex++;
+    if (currentQuestionIndex < roundSize) {
+        loadQuestion();
+        saveProgress();
+    } else showResults();
+});
 playAgainBtn.addEventListener("click", resetQuiz);
+shareResultBtn.addEventListener("click", shareResult);
+copyResultBtn.addEventListener("click", copyResult);
+saveImageBtn.addEventListener("click", saveScoreImage);
+resumeBtn.addEventListener("click", resumeRound);
+discardBtn.addEventListener("click", resetQuiz);
 
+pendingRound = readSavedProgress();
+if (pendingRound) {
+    resumeSummary.textContent = `${pendingRound.answers.length} of ${roundSize} questions answered. Pick up where you left off.`;
+    showScreen(resumeScreen);
+    resumeHeading.focus();
+}
