@@ -60,6 +60,7 @@ node tests/quiz.test.js
 node tests/sharing.test.js
 node tests/preview.test.js
 node tests/sample-question.test.js
+node tests/discovery.test.js
 node tests/progress.test.js
 node tests/score-image.test.js
 ```
@@ -89,6 +90,14 @@ The save contains no nickname. A restored round finishes with neutral results, a
 Saves expire 24 hours after their last update. Schema version, a signature of the full current question bank, timestamps, unique known question IDs, the remaining pool, answer indices and round position are validated before restoration. Editing any question-bank content invalidates prior saves automatically; change `progressVersion` when changing the save format. Unknown fields are rejected. Invalid, expired or malformed saves are removed when storage allows. Storage access, quota or privacy errors are caught and disable saving for that page without interrupting normal play. No external service or hosting setting is required.
 
 `node tests/progress.test.js` simulates refreshing before and after every answer, exact question/pool/answer restoration, score and feedback, double-click protection, anonymous results, review/sharing, final feedback, discard/reset, completion/replay cleanup, changed versions, malformed/invalid/expired data and blocked storage. Browser checks also cover same-tab refresh, keyboard Resume/Discard/Next/See Results, mobile layouts, review and copy after restoration.
+
+## Search discovery
+
+The two public entry pages are `https://anupamas02.github.io/quiz-quest/` and `https://anupamas02.github.io/quiz-quest/sample-question.html`. Both already have static canonical and matching Open Graph URLs. The sample links back to `./` (or `./#start-screen`) rather than the duplicate `index.html` address; relative links retain the GitHub Pages subpath. Existing query strings and fragments are not rewritten or redirected.
+
+`sitemap.xml` lists only those two clean canonical URLs, not nickname, score, answer, resume state or question-invitation variants. Both pages link to the sitemap in their head and through a normal crawlable footer link. No build step is needed. Dates, priorities and update frequencies are omitted rather than guessed. `node tests/discovery.test.js` checks the sitemap structure, exact entries, canonical/social consistency, sitemap discovery links and navigation under `/quiz-quest/`.
+
+A project-level `/quiz-quest/robots.txt` would not be the host-root `/robots.txt` that crawlers use, so none is added. The host root is outside this repository. After merging and deploying through the existing Pages process, check that both pages and `https://anupamas02.github.io/quiz-quest/sitemap.xml` return HTTP 200. The founder can submit that sitemap URL in their search-engine webmaster tools if available; no webmaster account or hosting change is required for these repository changes. A sitemap helps discovery but does not guarantee indexing or rankings.
 
 ## Shared-link preview
 

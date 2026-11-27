@@ -47,7 +47,7 @@ assert.deepEqual(questionButtons.map((match) => match[2]), sampleQuestion.choice
 assert.match(samplePage, /id="sample-feedback"[^>]*role="status"[^>]*aria-live="polite"/);
 assert.match(samplePage, /href="https:\/\/help\.brainer\.ceo\/ai-team"[^>]*target="_blank"[^>]*rel="noopener noreferrer"/);
 assert.ok(samplePage.includes("No account or nickname needed."));
-assert.match(samplePage, /href="index\.html#start-screen"[^>]*hidden>Start Quiz<\/a>/,
+assert.match(samplePage, /href="\.\/#start-screen"[^>]*hidden>Start Quiz<\/a>/,
     "The full-quiz link must stay relative to the GitHub Pages subpath and reveal after answering");
 assert.match(fs.readFileSync("index.html", "utf8"), /href="sample-question\.html">Answer a Brainer sample question/,
     "The main entry page must link to the sample for crawlers and visitors");
