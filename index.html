@@ -40,6 +40,8 @@
             <h2>How well do you know Brainer?</h2>
             <p>Take a five-question multiple-choice quiz about Brainer’s AI team, tasks and founder decisions. No account or nickname needed.</p>
             <p>Follow your score, read an explanation after each answer and see your result at the end. Each round draws five questions from a 20-question bank.</p>
+            <p id="invitation-error" class="hidden" role="status"></p>
+            <button id="recover-round-btn" class="secondary-btn hidden" type="button">Resume Saved Quiz</button>
             <form id="start-form">
                 <label for="player-name">Nickname (optional, 2–20 characters):</label>
                 <input type="text" id="player-name" name="playerName" placeholder="e.g. Alex"
@@ -57,6 +59,20 @@
                 <button id="resume-btn" type="button">Resume Quiz</button>
                 <button id="discard-btn" class="secondary-btn" type="button">Discard Round</button>
             </div>
+        </section>
+
+        <section id="invitation-screen" class="screen hidden" aria-labelledby="invitation-heading">
+            <p>Try one Brainer question</p>
+            <h2 id="invitation-heading" tabindex="-1"></h2>
+            <div id="invitation-answers">
+                <button id="invitation-answer-0" class="invitation-answer" type="button"></button>
+                <button id="invitation-answer-1" class="invitation-answer" type="button"></button>
+                <button id="invitation-answer-2" class="invitation-answer" type="button"></button>
+                <button id="invitation-answer-3" class="invitation-answer" type="button"></button>
+            </div>
+            <p id="invitation-feedback" class="answer-feedback" role="status" aria-live="polite" tabindex="-1"></p>
+            <p>Ready for more? Answer five multiple-choice questions about Brainer.</p>
+            <button id="invitation-start-btn" type="button">Try the Full Quiz</button>
         </section>
 
         <!-- Screen 2: Quiz (hidden for now) -->
@@ -93,6 +109,20 @@
                 <p>Look back at your five answers and see why each correct answer fits.</p>
                 <ol id="review-list" class="review-list"></ol>
             </details>
+            <div class="result-sharing" aria-label="Invite a friend with a question">
+                <h3>Give a friend one question to try</h3>
+                <p id="invitation-preview"></p>
+                <p>The invitation includes only this question. Your nickname, answer and score stay here.</p>
+                <div class="share-actions">
+                    <button id="share-question-btn" class="secondary-btn" type="button">Share Question</button>
+                    <button id="copy-question-btn" class="secondary-btn" type="button">Copy Question Link</button>
+                </div>
+                <p id="question-share-status" role="status" aria-live="polite" aria-atomic="true"></p>
+                <div id="question-manual-copy" class="hidden">
+                    <label for="question-share-text">Copy this question invitation and link:</label>
+                    <textarea id="question-share-text" readonly rows="5" spellcheck="false"></textarea>
+                </div>
+            </div>
             <div class="result-sharing" aria-label="Share your result">
                 <p id="share-note">Share your score and invite a friend to try a Brainer round. Questions may differ. Your name stays here.</p>
                 <div class="share-actions">

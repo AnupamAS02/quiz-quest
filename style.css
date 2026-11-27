@@ -163,32 +163,38 @@ button:active {
     min-height: 3rem;
 }
 
-#answer-buttons {
+#answer-buttons,
+#invitation-answers {
     display: flex;
     flex-direction: column;
     gap: 0.75rem;
 }
 
-.answer-btn {
+.answer-btn,
+.invitation-answer {
     background-color: var(--color-secondary);
     color: var(--color-text);
     text-align: left;
 }
 
-.answer-btn:hover:not(:disabled) {
+.answer-btn:hover:not(:disabled),
+.invitation-answer:hover:not(:disabled) {
     background-color: #bfdbfe;
 }
 
-.answer-btn:disabled {
+.answer-btn:disabled,
+.invitation-answer:disabled {
     cursor: default;
     transform: none;
 }
 
-.answer-btn.correct {
+.answer-btn.correct,
+.invitation-answer.correct {
     background-color: var(--color-correct);
 }
 
-.answer-btn.wrong {
+.answer-btn.wrong,
+.invitation-answer.wrong {
     background-color: var(--color-wrong);
 }
 
@@ -301,16 +307,19 @@ button:active {
 }
 
 #share-status:not(:empty),
-#save-image-status:not(:empty) {
+#save-image-status:not(:empty),
+#question-share-status:not(:empty) {
     margin: 1rem 0;
 }
 
-#manual-copy label {
+#manual-copy label,
+#question-manual-copy label {
     display: block;
     margin-bottom: 0.5rem;
 }
 
-#share-text {
+#share-text,
+#question-share-text {
     width: 100%;
     padding: 0.75rem;
     font: inherit;
@@ -321,7 +330,8 @@ button:active {
     resize: vertical;
 }
 
-#share-text:focus-visible {
+#share-text:focus-visible,
+#question-share-text:focus-visible {
     outline: 3px solid var(--color-accent);
     outline-offset: 3px;
 }
@@ -400,6 +410,25 @@ button:active {
     min-height: 44px;
     color: var(--color-primary);
     text-underline-offset: 3px;
+}
+
+#invitation-screen > p:first-child {
+    color: var(--color-primary);
+    font-weight: 600;
+}
+
+#invitation-screen > p:last-of-type {
+    margin-top: 1.5rem;
+}
+
+#invitation-preview {
+    margin-top: 0.75rem;
+    color: var(--color-text);
+    font-weight: 600;
+}
+
+#recover-round-btn {
+    margin-bottom: 1.5rem;
 }
 
 /* Standalone sample question entry page */

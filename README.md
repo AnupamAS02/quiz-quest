@@ -29,6 +29,8 @@ A multiple-choice quiz app built with vanilla HTML, CSS, and JavaScript. No fram
 - Fully responsive — works on mobile and desktop
 - Play again without refreshing
 - Optional results review with all five questions, your answers, correct answers, explanations and official source links
+- Invite a friend with one question from your completed round, without sharing your nickname, answer or score
+- Answer a shared question, read feedback and continue to the five-question quiz
 - Share your Brainer score and quiz link without your entered name
 - Device sharing where supported, clipboard copying or selectable text as a fallback
 - Save a private PNG score image with the five-question Brainer invitation and public quiz address
@@ -63,6 +65,7 @@ node tests/sample-question.test.js
 node tests/discovery.test.js
 node tests/progress.test.js
 node tests/score-image.test.js
+node tests/invitations.test.js
 ```
 
 Result sharing always uses `https://anupamas02.github.io/quiz-quest/`, not the current address or any player data in it. Shared rounds are randomized independently; no identical-question challenge is implied. Share cancellation keeps the result on screen. If device sharing fails, use Copy Result; if clipboard access is missing or denied, copy from the selected, read-only text field. Play Again clears the result and sharing state, including pending sharing replies.
@@ -72,6 +75,18 @@ The results screen includes a collapsed Review Answers section. Open it with a t
 Nicknames are optional and kept only in the current page’s memory; no nickname is stored. Blank or whitespace-only entries start a round without personalization. Entered nicknames are trimmed and must contain 2–20 characters. Play Again clears the nickname.
 
 Quiz regression checks cover blank and whitespace-only starts, trimmed nicknames, length limits, encouraging results with and without nicknames, review contents for mixed, zero and perfect scores, source links, repeated answers and cleared review state on replay. Sharing regression checks simulate native sharing success/cancellation/failure, clipboard success/denial/absence, scores 0/3/5 and late responses after replay. Also spot-check a native device share sheet on the deployed HTTPS site, since desktop browser automation cannot verify OS-specific share targets.
+
+## One-question invitations
+
+Results offer Share Question and Copy Question Link alongside the existing score-sharing actions. The invitation uses the first question from the completed round and shows its prompt before sharing. Its payload contains only a fixed title, the question prompt and `https://anupamas02.github.io/quiz-quest/#question=QUESTION-ID`. The address is never taken from the current page, and the payload contains no nickname, chosen answer, explanation or score. Native-share cancellation does not copy anything. Unsupported sharing falls back to copying; clipboard denial or absence reveals selected, read-only invitation text. Replay clears invitation sharing state and invalidates late replies.
+
+The recipient sees four choices for that checked question-bank ID without needing a nickname. After answering, correct/wrong labels, the correct answer and explanation remain visible at their own pace. Feedback receives keyboard focus; Try the Full Quiz leads to the normal optional-nickname start screen. The sample does not award points, record answers in a full round or write session storage. Refreshing a sample lets the recipient try it again. The full round is independently drawn from the bank and may include the sample question.
+
+If the tab already holds an unfinished round, trying the sample preserves it. Try the Full Quiz offers the existing Resume Quiz / Discard Round choice instead of silently replacing it. Unknown IDs, malformed fragments and fragments with extra fields return to the start screen with a friendly message; a saved round is still available through Resume Saved Quiz. Hash changes also handle question links opened in an already-loaded tab. Leaving the invitation removes the fragment using the History API so subsequent refreshes offer recovery of the full round. If a browser restricts that API, play still works, but refreshing the unchanged question address can show the sample again.
+
+No new questions, third-party services, host settings or build step are needed. The static social preview remains the general five-question Brainer challenge; a question-specific social preview is not claimed. Existing IDs are public link identifiers, so keep them stable for unchanged questions. Removed IDs fall back safely.
+
+`node tests/invitations.test.js` checks all 20 links with correct and incorrect answers, repeat-answer protection, private payloads, malformed links, fresh full rounds and recovery, preserved/discardable saves, blocked storage, same-tab navigation, native sharing and cancellation, clipboard/manual fallbacks, review preservation, replay and late replies. Local Chromium checks cover keyboard answers/feedback/start/copy/replay, same-tab links, invalid links, recovery after a sample, full-round completion, manual copy and layouts at 375, 768 and 1280 pixels. After merging and deploying, spot-check the native share sheet and link opening on the target mobile browsers; desktop automation cannot verify OS-specific share targets.
 
 ## Private score images
 
