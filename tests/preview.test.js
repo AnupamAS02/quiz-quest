@@ -48,6 +48,10 @@ assert.match(startScreen, /Follow your score/);
 assert.match(startScreen, /explanation after each answer/);
 assert.match(startScreen, /five questions from a 20-question bank/);
 assert.match(startScreen, /<button type="submit">Start Quiz<\/button>/);
-assert.ok(!/\bhidden\b/.test(startScreen), "The crawlable start content must be initially visible");
+// Invitation errors/recovery are conditional controls, not the crawlable offer.
+const visibleStartContent = startScreen
+    .replace(/<p id="invitation-error" class="hidden" role="status"><\/p>/, "")
+    .replace(/<button id="recover-round-btn" class="secondary-btn hidden"[^>]*>Resume Saved Quiz<\/button>/, "");
+assert.ok(!/\bhidden\b/.test(visibleStartContent), "The crawlable start content must be initially visible");
 assert.match(startScreen, /Nickname \(optional, 2–20 characters\)/);
 console.log("Search metadata, visible start content, subpath URLs and preview PNG checks passed.");

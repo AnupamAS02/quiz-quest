@@ -35,6 +35,15 @@ function boot(hash = "", saved = storage()) {
 }
 (async () => {
     const bank = boot().run("questionBank");
+    // The newer crawlable sample hands off through this pre-existing anchor.
+    const sampleHandoff = boot("#start-screen");
+    assert.equal(sampleHandoff.elements["start-screen"].classList.contains("hidden"), false);
+    assert.equal(sampleHandoff.elements["invitation-error"].classList.contains("hidden"), true);
+    sampleHandoff.start(); sampleHandoff.answer();
+    assert.equal(sampleHandoff.location.hash, "#start-screen");
+    const sampleRefreshed = boot("#start-screen", sampleHandoff.saved);
+    assert.equal(sampleRefreshed.elements["resume-screen"].classList.contains("hidden"), false);
+    assert.equal(sampleRefreshed.elements["invitation-error"].classList.contains("hidden"), true);
     // Every stable ID, both outcomes, no scoring/storage, no repeated answer.
     for (const q of bank) {
         for (const selected of [q.correctIndex, (q.correctIndex + 1) % 4]) {

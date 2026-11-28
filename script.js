@@ -167,7 +167,7 @@ function answerInvitation(index) {
 function leaveQuestionLink() {
     // Drop the invitation on exit so refresh recovers the full round, not the sample.
     try {
-        if (typeof location !== "undefined" && location.hash) {
+        if (typeof location !== "undefined" && location.hash && location.hash !== "#start-screen") {
             history.replaceState(null, "", location.pathname + location.search);
         }
     } catch { /* Restricted history access must not prevent play. */ }
@@ -654,7 +654,8 @@ function openQuestionLink() {
     invitationError.classList.add("hidden");
     recoverRoundBtn.classList.add("hidden");
     if (question) showInvitation(question);
-    else if (hash) {
+    // The standalone sample uses this existing, valid start-screen anchor.
+    else if (hash && hash !== "#start-screen") {
         invitedQuestion = null;
         showScreen(startScreen);
         invitationError.textContent = "That question link isn’t available. Try a five-question round instead.";
