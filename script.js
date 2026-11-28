@@ -57,6 +57,130 @@ const saveImageBtn = document.getElementById("save-image-btn");
 const saveImageStatus = document.getElementById("save-image-status");
 const quizUrl = "https://anupamas02.github.io/quiz-quest/";
 let sharingVersion = 0;
+const invitationScreen = document.getElementById("invitation-screen");
+const invitationHeading = document.getElementById("invitation-heading");
+const invitationFeedback = document.getElementById("invitation-feedback");
+const invitationButtons = Array.from({ length: 4 }, (_, index) =>
+    document.getElementById(`invitation-answer-${index}`));
+const invitationPreview = document.getElementById("invitation-preview");
+const shareQuestionBtn = document.getElementById("share-question-btn");
+const copyQuestionBtn = document.getElementById("copy-question-btn");
+const questionShareStatus = document.getElementById("question-share-status");
+const questionManualCopy = document.getElementById("question-manual-copy");
+const questionShareText = document.getElementById("question-share-text");
+const invitationError = document.getElementById("invitation-error");
+const recoverRoundBtn = document.getElementById("recover-round-btn");
+let invitedQuestion = null;
+let invitationAnswered = false;
+
+// A fixed public address and checked bank ID are the only link inputs.
+function questionInvitation() {
+    const question = questions[0];
+    if (!question || !questionBank.includes(question)) return null;
+    return {
+        title: "Quiz Quest | Try a Brainer Question",
+        text: `Can you answer this Brainer question? ${question.question}`,
+        url: `${quizUrl}#question=${question.id}`,
+    };
+}
+
+async function copyQuestion() {
+    if (copyQuestionBtn.disabled) return;
+    const invitation = questionInvitation();
+    if (!invitation) return;
+    const version = sharingVersion;
+    const text = `${invitation.text}\n${invitation.url}`;
+    copyQuestionBtn.disabled = true;
+    questionShareStatus.textContent = "";
+    try {
+        await navigator.clipboard.writeText(text);
+        if (version !== sharingVersion) return;
+        questionManualCopy.classList.add("hidden");
+        questionShareStatus.textContent = "Question invitation copied. Ready to send!";
+    } catch {
+        if (version !== sharingVersion) return;
+        questionShareText.value = text;
+        questionManualCopy.classList.remove("hidden");
+        questionShareStatus.textContent = "Automatic copying isn’t available. Copy the selected invitation below.";
+        questionShareText.focus();
+        questionShareText.select();
+    } finally {
+        if (version === sharingVersion) copyQuestionBtn.disabled = false;
+    }
+}
+
+async function shareQuestion() {
+    if (shareQuestionBtn.disabled) return;
+    if (typeof navigator.share !== "function") return copyQuestion();
+    const invitation = questionInvitation();
+    if (!invitation) return;
+    const version = sharingVersion;
+    shareQuestionBtn.disabled = true;
+    questionShareStatus.textContent = "";
+    try {
+        await navigator.share(invitation);
+        if (version === sharingVersion) questionShareStatus.textContent = "Question invitation shared.";
+    } catch (error) {
+        if (version !== sharingVersion) return;
+        questionShareStatus.textContent = error && error.name === "AbortError"
+            ? "Sharing cancelled. Your result is still here."
+            : "Device sharing isn’t available. Use Copy Question Link to send the invitation.";
+    } finally {
+        if (version === sharingVersion) shareQuestionBtn.disabled = false;
+    }
+}
+
+function readQuestionLink(hash) {
+    const match = /^#question=([a-z0-9-]+)$/.exec(hash);
+    return match ? questionBank.find((question) => question.id === match[1]) || null : null;
+}
+
+function showInvitation(question) {
+    invitedQuestion = question;
+    invitationAnswered = false;
+    invitationHeading.textContent = question.question;
+    invitationFeedback.textContent = "";
+    invitationButtons.forEach((button, index) => {
+        button.textContent = question.choices[index];
+        button.disabled = false;
+        button.classList.remove("correct", "wrong");
+    });
+    showScreen(invitationScreen);
+    invitationHeading.focus();
+}
+
+function answerInvitation(index) {
+    if (!invitedQuestion || invitationAnswered) return;
+    invitationAnswered = true;
+    const correct = invitedQuestion.correctIndex;
+    invitationButtons.forEach((button) => { button.disabled = true; });
+    invitationButtons[correct].classList.add("correct");
+    invitationButtons[correct].textContent += " — Correct answer";
+    if (index !== correct) {
+        invitationButtons[index].classList.add("wrong");
+        invitationButtons[index].textContent += " — Your answer";
+    }
+    invitationFeedback.textContent = `${index === correct ? "Correct!" : "Not quite."} Correct answer: ${invitedQuestion.choices[correct]}. ${invitedQuestion.explanation}`;
+    invitationFeedback.focus();
+}
+
+function leaveQuestionLink() {
+    // Drop the invitation on exit so refresh recovers the full round, not the sample.
+    try {
+        if (typeof location !== "undefined" && location.hash && location.hash !== "#start-screen") {
+            history.replaceState(null, "", location.pathname + location.search);
+        }
+    } catch { /* Restricted history access must not prevent play. */ }
+    invitedQuestion = null;
+    invitationError.classList.add("hidden");
+    recoverRoundBtn.classList.add("hidden");
+}
+
+function showResumeChoice() {
+    resumeSummary.textContent = `${pendingRound.answers.length} of ${roundSize} questions answered. Pick up where you left off.`;
+    showScreen(resumeScreen);
+    resumeHeading.focus();
+}
 
 // Build only from the score: never include the player's name or current URL.
 function resultText() {
@@ -72,6 +196,12 @@ function clearSharing() {
     copyResultBtn.disabled = false;
     saveImageBtn.disabled = false;
     saveImageStatus.textContent = "";
+    questionShareStatus.textContent = "";
+    questionShareText.value = "";
+    invitationPreview.textContent = "";
+    questionManualCopy.classList.add("hidden");
+    shareQuestionBtn.disabled = false;
+    copyQuestionBtn.disabled = false;
 }
 
 // Draw from an explicit score and fixed copy, never from results DOM or identity.
@@ -357,6 +487,7 @@ function showScreen(screenToShow) {
     startScreen.classList.add("hidden");
     quizScreen.classList.add("hidden");
     resultsScreen.classList.add("hidden");
+    invitationScreen.classList.add("hidden");
     screenToShow.classList.remove("hidden");
 }
 
@@ -421,6 +552,7 @@ function showResults() {
     clearSavedProgress();
     clearSharing();
     renderReview();
+    invitationPreview.textContent = questions[0].question;
     const percentage = Math.round((score / roundSize) * 100);
     const personalGreeting = playerName ? `, ${playerName}` : "";
     let message;
@@ -440,6 +572,7 @@ function showResults() {
 }
 
 function resetQuiz() {
+    leaveQuestionLink();
     clearSavedProgress();
     clearSharing();
     clearReview();
@@ -468,6 +601,8 @@ startForm.addEventListener("submit", (event) => {
         return;
     }
     playerNameInput.setCustomValidity("");
+    leaveQuestionLink();
+    clearSharing();
     clearReview();
     playerName = name;
     questions = drawRound();
@@ -497,9 +632,38 @@ saveImageBtn.addEventListener("click", saveScoreImage);
 resumeBtn.addEventListener("click", resumeRound);
 discardBtn.addEventListener("click", resetQuiz);
 
-pendingRound = readSavedProgress();
-if (pendingRound) {
-    resumeSummary.textContent = `${pendingRound.answers.length} of ${roundSize} questions answered. Pick up where you left off.`;
-    showScreen(resumeScreen);
-    resumeHeading.focus();
+shareQuestionBtn.addEventListener("click", shareQuestion);
+copyQuestionBtn.addEventListener("click", copyQuestion);
+invitationButtons.forEach((button, index) => {
+    button.addEventListener("click", () => answerInvitation(index));
+});
+document.getElementById("invitation-start-btn").addEventListener("click", () => {
+    leaveQuestionLink();
+    if (pendingRound) showResumeChoice();
+    else resetQuiz();
+});
+recoverRoundBtn.addEventListener("click", () => {
+    leaveQuestionLink();
+    if (pendingRound) showResumeChoice();
+});
+
+function openQuestionLink() {
+    pendingRound = readSavedProgress();
+    const hash = typeof location === "undefined" ? "" : location.hash;
+    const question = readQuestionLink(hash);
+    invitationError.classList.add("hidden");
+    recoverRoundBtn.classList.add("hidden");
+    if (question) showInvitation(question);
+    // The standalone sample uses this existing, valid start-screen anchor.
+    else if (hash && hash !== "#start-screen") {
+        invitedQuestion = null;
+        showScreen(startScreen);
+        invitationError.textContent = "That question link isn’t available. Try a five-question round instead.";
+        invitationError.classList.remove("hidden");
+        if (pendingRound) recoverRoundBtn.classList.remove("hidden");
+    } else if (pendingRound) showResumeChoice();
+    else showScreen(startScreen);
 }
+
+openQuestionLink();
+if (typeof window !== "undefined") window.addEventListener("hashchange", openQuestionLink);
