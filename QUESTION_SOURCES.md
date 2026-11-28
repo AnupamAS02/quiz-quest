@@ -35,6 +35,8 @@ All 20 questions in `questions.js` were checked against official Brainer pages o
 
 The crawlable `sample-question.html` entry page uses the `engineer-role` question and its official AI team source.
 
+The static `brainer-basics.html` reference introduces the same sourced concepts without reproducing the question bank. Its final copy was supplied by the Writer in `content/brainer-basics.md` (company document), checked against both official guides on 28 November 2026. The page visibly links to those guides and offers the existing quiz and sample. Recheck the reference alongside the question bank if Brainer changes its features.
+
 ## Round and feedback behavior
 
 - A round contains five distinct questions.

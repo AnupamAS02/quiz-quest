@@ -628,3 +628,94 @@ button:active {
     outline: 3px solid var(--color-accent);
     outline-offset: 3px;
 }
+
+/* Sourced basics reference; no script required to read or navigate. */
+a {
+    color: var(--color-primary);
+    text-underline-offset: 3px;
+}
+
+a:focus-visible {
+    outline: 3px solid var(--color-primary);
+    outline-offset: 3px;
+    border-radius: 2px;
+}
+
+.reference-link {
+    margin: 1rem 0 1.5rem;
+    color: var(--color-text-muted);
+    font-size: 0.95rem;
+}
+
+.basics-main {
+    align-items: flex-start;
+}
+
+.basics-card {
+    width: 100%;
+    max-width: 760px;
+    padding: clamp(1.5rem, 5vw, 3rem);
+    border-radius: var(--radius);
+    background: var(--color-surface);
+    box-shadow: 0 8px 28px rgb(23 37 84 / 8%);
+}
+
+.basics-card h1 {
+    margin-bottom: 1rem;
+    font-size: clamp(1.9rem, 5vw, 2.5rem);
+    line-height: 1.2;
+}
+
+.basics-card p {
+    margin-bottom: 1rem;
+}
+
+.basics-card h2 {
+    margin-bottom: 0.75rem;
+    font-size: 1.35rem;
+    line-height: 1.35;
+}
+
+.basics-section {
+    margin-top: 1.75rem;
+    padding-top: 1.75rem;
+    border-top: 1px solid var(--color-secondary);
+}
+
+.basics-source {
+    font-size: 0.9rem;
+    color: var(--color-text-muted);
+}
+
+.basics-play {
+    padding: 1.5rem;
+    border-radius: var(--radius);
+    background: var(--color-bg);
+    border: 1px solid var(--color-secondary);
+}
+
+.basics-play .sample-start-btn {
+    margin-bottom: 1rem;
+}
+
+.basics-play p:last-child {
+    margin-bottom: 0;
+}
+
+.skip-link {
+    position: absolute;
+    top: 0.5rem;
+    left: 1rem;
+    padding: 0.75rem 1rem;
+    background: var(--color-surface);
+    z-index: 1;
+    transform: translateY(-200%);
+}
+
+.skip-link:focus {
+    transform: translateY(0);
+}
+
+.basics-independence {
+    margin-top: 1.5rem;
+}

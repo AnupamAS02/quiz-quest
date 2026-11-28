@@ -19,6 +19,7 @@ A multiple-choice quiz app built with vanilla HTML, CSS, and JavaScript. No fram
 
 - Five-question rounds drawn from 20 Brainer multiple-choice questions
 - Searchable sample question with answer feedback, an official source and a link to the full quiz
+- Compact Brainer basics reference with official sources and direct quiz/sample links
 - Fresh questions on replay, using the remaining bank before reshuffling
 - Live score tracking and progress bar
 - Correct/wrong labels, color feedback and concise answer explanations
@@ -63,6 +64,7 @@ node tests/sharing.test.js
 node tests/preview.test.js
 node tests/sample-question.test.js
 node tests/discovery.test.js
+node tests/brainer-basics.test.js
 node tests/progress.test.js
 node tests/score-image.test.js
 node tests/invitations.test.js
@@ -108,11 +110,17 @@ Saves expire 24 hours after their last update. Schema version, a signature of th
 
 ## Search discovery
 
-The two public entry pages are `https://anupamas02.github.io/quiz-quest/` and `https://anupamas02.github.io/quiz-quest/sample-question.html`. Both already have static canonical and matching Open Graph URLs. The sample links back to `./` (or `./#start-screen`) rather than the duplicate `index.html` address; relative links retain the GitHub Pages subpath. Existing query strings and fragments are not rewritten or redirected.
+The three public entry pages are `https://anupamas02.github.io/quiz-quest/`, `https://anupamas02.github.io/quiz-quest/sample-question.html` and `https://anupamas02.github.io/quiz-quest/brainer-basics.html`. All have static canonical and matching Open Graph URLs. The sample links back to `./` (or `./#start-screen`) rather than the duplicate `index.html` address; relative links retain the GitHub Pages subpath. Existing query strings and fragments are not rewritten or redirected.
 
-`sitemap.xml` lists only those two clean canonical URLs, not nickname, score, answer, resume state or question-invitation variants. Both pages link to the sitemap in their head and through a normal crawlable footer link. No build step is needed. Dates, priorities and update frequencies are omitted rather than guessed. `node tests/discovery.test.js` checks the sitemap structure, exact entries, canonical/social consistency, sitemap discovery links and navigation under `/quiz-quest/`.
+`sitemap.xml` lists only those three clean canonical URLs, not nickname, score, answer, resume state or question-invitation variants. All three pages link to the sitemap in their head and through a normal crawlable footer link. No build step is needed. Dates, priorities and update frequencies are omitted rather than guessed. `node tests/discovery.test.js` checks the sitemap structure, exact entries, canonical/social consistency, sitemap discovery links and navigation under `/quiz-quest/`.
 
-A project-level `/quiz-quest/robots.txt` would not be the host-root `/robots.txt` that crawlers use, so none is added. The host root is outside this repository. After merging and deploying through the existing Pages process, check that both pages and `https://anupamas02.github.io/quiz-quest/sitemap.xml` return HTTP 200. The founder can submit that sitemap URL in their search-engine webmaster tools if available; no webmaster account or hosting change is required for these repository changes. A sitemap helps discovery but does not guarantee indexing or rankings.
+A project-level `/quiz-quest/robots.txt` would not be the host-root `/robots.txt` that crawlers use, so none is added. The host root is outside this repository. After merging and deploying through the existing Pages process, check that all three pages and `https://anupamas02.github.io/quiz-quest/sitemap.xml` return HTTP 200. The founder can submit that sitemap URL in their search-engine webmaster tools if available; no webmaster account or hosting change is required for these repository changes. A sitemap helps discovery but does not guarantee indexing or rankings.
+
+## Brainer basics reference
+
+`brainer-basics.html` introduces Brainer’s team, tasks, routines, shared documents, requests, approvals and progress. It integrates the Writer’s final Phase 14 copy, with visible links to the official AI team and CEO guides. It is a compact in-product reference, not a blog, quiz mode or answer key. The quiz and sample link to it as an optional introduction; Start Quiz and Try the sample question link back to the existing playable entries without carrying player state. The reference is static HTML and needs no script, dependencies or host settings.
+
+The page uses a single H1, labelled sections, a keyboard skip link, visible link focus and responsive reading width. `node tests/brainer-basics.test.js` checks static content, official sources, semantic headings, metadata and relative navigation. Local Chromium checks cover source navigation, keyboard skip/focus, both entry links, reference-to-sample and reference-to-full-quiz handoffs, five-question completion and replay. The reference, sample and start page have no horizontal overflow at 375, 768 and 1280 pixels. Existing question invitation and recovery suites still pass. After founder review, merge and deployment, check the new reference URL and all three sitemap entries on GitHub Pages; these local checks do not claim live acceptance or search indexing.
 
 ## Shared-link preview
 
